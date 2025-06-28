@@ -157,9 +157,9 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
-button:hover {
+/* button:hover {
   border-color: #646cff;
-}
+} */
 button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
