@@ -5,22 +5,59 @@ import ChatWindow from "./components/ChatWindow";
 import ChatInput from "./components/ChatInput";
 import CodeImplementation from "./components/CodeImplementation";
 import ChallengeModal from "./components/ChallengeModal";
-import { Box, Flex, Text, Button, Textarea } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Text,
+  Button,
+  Textarea,
+  Select,
+  createListCollection,
+} from "@chakra-ui/react";
 
 function App() {
   const sessionId = useAppStore((state) => state.sessionId);
   const currentStage = useAppStore((state) => state.currentStage);
   const {
     setSession,
+    setSessionInfo,
     addMessage,
     appendStreamChunk,
     setIsStreaming,
+    setIsInitializing,
     setError,
   } = useAppStore();
   const ws = React.useRef<WebSocket | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [language, setLanguage] = useState("Python");
   const [skillLevel, setSkillLevel] = useState("中级");
+  const [selectedModel, setSelectedModel] = useState("Claude 3.7 Sonnet");
+
+  // 选择器数据
+  const languageOptions = createListCollection({
+    items: [
+      { label: "Python", value: "Python" },
+      { label: "JavaScript", value: "JavaScript" },
+      { label: "Java", value: "Java" },
+      { label: "C++", value: "C++" },
+    ],
+  });
+
+  const skillLevelOptions = createListCollection({
+    items: [
+      { label: "初学者", value: "初学者" },
+      { label: "中级", value: "中级" },
+      { label: "高级", value: "高级" },
+    ],
+  });
+
+  const modelOptions = createListCollection({
+    items: [
+      { label: "Claude 3.7 Sonnet", value: "Claude 3.7 Sonnet" },
+      { label: "GPT-4o", value: "GPT-4o" },
+      { label: "DeepSeek R1", value: "DeepSeek R1" },
+    ],
+  });
 
   const connectWebSocket = (newSessionId: string) => {
     if (ws.current) ws.current.close();
@@ -28,6 +65,7 @@ function App() {
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === "chunk") {
+        setIsInitializing(false); // 收到第一个chunk时，结束初始化状态
         setIsStreaming(true);
         appendStreamChunk(data.content);
       } else if (data.type === "end") {
@@ -35,6 +73,7 @@ function App() {
       } else if (data.type === "error") {
         setError(data.content);
         setIsStreaming(false);
+        setIsInitializing(false); // 错误时也结束初始化状态
       }
     };
   };
@@ -47,6 +86,15 @@ function App() {
   ) => {
     setError(null);
     try {
+      // 先设置session信息并进入初始化状态（显示骨架屏）
+      const tempSessionId = Date.now().toString(); // 临时ID，等后端返回真实ID
+      setSessionInfo({
+        sessionId: tempSessionId,
+        problem,
+        language,
+        skillLevel,
+      });
+
       const response = await fetch("http://localhost:8000/api/start_session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -56,6 +104,7 @@ function App() {
         throw new Error((await response.json()).detail || "服务器错误");
       const data = await response.json();
       if (data.success) {
+        // 更新为真实的session ID并设置初始AI消息
         setSession({
           sessionId: data.sessionId,
           initialMessage: { sender: "ai", text: data.message },
@@ -64,13 +113,16 @@ function App() {
           skillLevel,
         });
         connectWebSocket(data.sessionId);
+        // isInitializing在setSession中已经设置为false
       } else {
         setError(data.error || "启动失败");
+        setIsInitializing(false);
       }
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "无法连接到后端服务";
       setError(errorMessage);
+      setIsInitializing(false);
     }
   };
 
@@ -140,64 +192,6 @@ function App() {
             overflow="hidden"
             zIndex={1}
           >
-            {/* 右上角模型选择 - 更精致的设计 */}
-            <Box position="absolute" top={6} right={6} zIndex={10}>
-              <Box
-                position="relative"
-                _before={{
-                  content: '""',
-                  position: "absolute",
-                  inset: "-2px",
-                  borderRadius: "12px",
-                  background:
-                    "linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)",
-                  opacity: 0,
-                  transition: "opacity 0.3s ease",
-                }}
-                _hover={{
-                  _before: {
-                    opacity: 1,
-                  },
-                }}
-              >
-                <select
-                  style={{
-                    padding: "12px 18px",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "12px",
-                    backgroundColor: "rgba(255, 255, 255, 0.95)",
-                    backdropFilter: "blur(10px)",
-                    fontSize: "14px",
-                    color: "#374151",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                    boxShadow:
-                      "0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1)",
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    outline: "none",
-                    position: "relative",
-                    zIndex: 1,
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#f97316";
-                    e.target.style.boxShadow =
-                      "0 0 0 4px rgba(249, 115, 22, 0.1), 0 8px 32px rgba(0, 0, 0, 0.12)";
-                    e.target.style.transform = "translateY(-2px)";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#e2e8f0";
-                    e.target.style.boxShadow =
-                      "0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1)";
-                    e.target.style.transform = "translateY(0px)";
-                  }}
-                >
-                  <option>Claude Sonnet 4</option>
-                  <option>GPT-4o</option>
-                  <option>DeepSeek R1</option>
-                </select>
-              </Box>
-            </Box>
-
             {/* Claude风格的中心内容 */}
             <Box
               textAlign="center"
@@ -256,6 +250,7 @@ function App() {
                     boxShadow: "0 0 0 3px rgba(255, 107, 53, 0.1)",
                   }}
                 >
+                  {/* 上方输入区域 */}
                   <Textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
@@ -263,9 +258,8 @@ function App() {
                     w="100%"
                     minH="120px"
                     p={4}
-                    pr={16}
                     border="none"
-                    borderRadius="12px"
+                    borderRadius="12px 12px 0 0"
                     fontSize="16px"
                     resize="none"
                     outline="none"
@@ -279,39 +273,284 @@ function App() {
                       boxShadow: "none",
                     }}
                   />
-                  <Button
-                    position="absolute"
-                    bottom={3}
-                    right={3}
-                    w="40px"
-                    h="40px"
-                    bg={inputValue.trim() ? "#ff6b35" : "#e5e7eb"}
-                    color="white"
-                    borderRadius="8px"
-                    minW="40px"
-                    fontSize="18px"
-                    disabled={!inputValue.trim()}
-                    _hover={{
-                      bg: inputValue.trim() ? "#e55a2e" : "#e5e7eb",
-                      transform: inputValue.trim() ? "scale(1.05)" : "none",
-                    }}
-                    onClick={() => {
-                      if (inputValue.trim()) {
-                        handleStartSession(
-                          inputValue,
-                          language,
-                          skillLevel === "中级"
-                            ? "intermediate"
-                            : skillLevel === "初学者"
-                            ? "beginner"
-                            : "advanced",
-                          "anthropic/claude-3.7-sonnet"
-                        );
-                      }
-                    }}
-                  >
-                    ↗
-                  </Button>
+
+                  {/* 底部一行：选择器 + 提交按钮 */}
+                  <Flex align="center" justify="space-between" p={3} pt={2}>
+                    {/* 左侧选择器组 */}
+                    <Flex gap={3} align="center">
+                      <Select.Root
+                        collection={languageOptions}
+                        value={[language]}
+                        onValueChange={(details) =>
+                          setLanguage(details.value[0])
+                        }
+                        size="sm"
+                      >
+                        <Select.Control>
+                          <Select.Trigger
+                            px={3}
+                            py={2}
+                            minW="100px"
+                            border="1px solid #e2e8f0"
+                            borderRadius="8px"
+                            bg="white"
+                            fontSize="14px"
+                            color="#475569"
+                            fontWeight="500"
+                            transition="all 0.2s"
+                            _hover={{
+                              borderColor: "#d1d5db",
+                              bg: "#fafafa",
+                            }}
+                            _focus={{
+                              borderColor: "#9ca3af",
+                              boxShadow: "0 0 0 1px rgba(156, 163, 175, 0.2)",
+                              outline: "none",
+                            }}
+                            _active={{
+                              borderColor: "#9ca3af",
+                              bg: "#fafafa",
+                            }}
+                          >
+                            <Select.ValueText placeholder="选择语言" />
+                            <Select.Indicator />
+                          </Select.Trigger>
+                        </Select.Control>
+                        <Select.Positioner>
+                          <Select.Content
+                            bg="white"
+                            border="1px solid #e2e8f0"
+                            borderRadius="8px"
+                            boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
+                            minW="120px"
+                            zIndex={1000}
+                          >
+                            {languageOptions.items.map((item) => (
+                              <Select.Item
+                                key={item.value}
+                                item={item}
+                                px={3}
+                                py={2}
+                                fontSize="14px"
+                                color="#374151"
+                                bg="white"
+                                _hover={{
+                                  bg: "#f8fafc",
+                                  color: "#1f2937",
+                                }}
+                                _focus={{
+                                  bg: "#f8fafc",
+                                  outline: "none",
+                                }}
+                                _selected={{
+                                  bg: "#f8fafc",
+                                  color: "#1f2937",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                <Select.ItemText>{item.label}</Select.ItemText>
+                              </Select.Item>
+                            ))}
+                          </Select.Content>
+                        </Select.Positioner>
+                      </Select.Root>
+
+                      <Select.Root
+                        collection={skillLevelOptions}
+                        value={[skillLevel]}
+                        onValueChange={(details) =>
+                          setSkillLevel(details.value[0])
+                        }
+                        size="sm"
+                      >
+                        <Select.Control>
+                          <Select.Trigger
+                            px={3}
+                            py={2}
+                            minW="80px"
+                            border="1px solid #e2e8f0"
+                            borderRadius="8px"
+                            bg="white"
+                            fontSize="14px"
+                            color="#475569"
+                            fontWeight="500"
+                            transition="all 0.2s"
+                            _hover={{
+                              borderColor: "#d1d5db",
+                              bg: "#fafafa",
+                            }}
+                            _focus={{
+                              borderColor: "#9ca3af",
+                              boxShadow: "0 0 0 1px rgba(156, 163, 175, 0.2)",
+                              outline: "none",
+                            }}
+                            _active={{
+                              borderColor: "#9ca3af",
+                              bg: "#fafafa",
+                            }}
+                          >
+                            <Select.ValueText placeholder="技能水平" />
+                            <Select.Indicator />
+                          </Select.Trigger>
+                        </Select.Control>
+                        <Select.Positioner>
+                          <Select.Content
+                            bg="white"
+                            border="1px solid #e2e8f0"
+                            borderRadius="8px"
+                            boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
+                            minW="100px"
+                            zIndex={1000}
+                          >
+                            {skillLevelOptions.items.map((item) => (
+                              <Select.Item
+                                key={item.value}
+                                item={item}
+                                px={3}
+                                py={2}
+                                fontSize="14px"
+                                color="#374151"
+                                bg="white"
+                                _hover={{
+                                  bg: "#f8fafc",
+                                  color: "#1f2937",
+                                }}
+                                _focus={{
+                                  bg: "#f8fafc",
+                                  outline: "none",
+                                }}
+                                _selected={{
+                                  bg: "#f8fafc",
+                                  color: "#1f2937",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                <Select.ItemText>{item.label}</Select.ItemText>
+                              </Select.Item>
+                            ))}
+                          </Select.Content>
+                        </Select.Positioner>
+                      </Select.Root>
+
+                      <Select.Root
+                        collection={modelOptions}
+                        value={[selectedModel]}
+                        onValueChange={(details) =>
+                          setSelectedModel(details.value[0])
+                        }
+                        size="sm"
+                      >
+                        <Select.Control>
+                          <Select.Trigger
+                            px={3}
+                            py={2}
+                            minW="160px"
+                            border="1px solid #e2e8f0"
+                            borderRadius="8px"
+                            bg="white"
+                            fontSize="14px"
+                            color="#475569"
+                            fontWeight="500"
+                            transition="all 0.2s"
+                            _hover={{
+                              borderColor: "#d1d5db",
+                              bg: "#fafafa",
+                            }}
+                            _focus={{
+                              borderColor: "#9ca3af",
+                              boxShadow: "0 0 0 1px rgba(156, 163, 175, 0.2)",
+                              outline: "none",
+                            }}
+                            _active={{
+                              borderColor: "#9ca3af",
+                              bg: "#fafafa",
+                            }}
+                          >
+                            <Select.ValueText placeholder="选择模型" />
+                            <Select.Indicator />
+                          </Select.Trigger>
+                        </Select.Control>
+                        <Select.Positioner>
+                          <Select.Content
+                            bg="white"
+                            border="1px solid #e2e8f0"
+                            borderRadius="8px"
+                            boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
+                            minW="180px"
+                            zIndex={1000}
+                          >
+                            {modelOptions.items.map((item) => (
+                              <Select.Item
+                                key={item.value}
+                                item={item}
+                                px={3}
+                                py={2}
+                                fontSize="14px"
+                                color="#374151"
+                                bg="white"
+                                _hover={{
+                                  bg: "#f8fafc",
+                                  color: "#1f2937",
+                                }}
+                                _focus={{
+                                  bg: "#f8fafc",
+                                  outline: "none",
+                                }}
+                                _selected={{
+                                  bg: "#f8fafc",
+                                  color: "#1f2937",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                <Select.ItemText>{item.label}</Select.ItemText>
+                              </Select.Item>
+                            ))}
+                          </Select.Content>
+                        </Select.Positioner>
+                      </Select.Root>
+                    </Flex>
+
+                    {/* 右侧提交按钮 */}
+                    <Button
+                      w="40px"
+                      h="40px"
+                      bg={inputValue.trim() ? "#ff6b35" : "#e5e7eb"}
+                      color="white"
+                      borderRadius="8px"
+                      minW="40px"
+                      fontSize="18px"
+                      disabled={!inputValue.trim()}
+                      _hover={{
+                        bg: inputValue.trim() ? "#e55a2e" : "#e5e7eb",
+                        transform: inputValue.trim() ? "scale(1.05)" : "none",
+                      }}
+                      onClick={() => {
+                        if (inputValue.trim()) {
+                          // 模型映射
+                          const modelMapping = {
+                            "Claude 3.7 Sonnet": "anthropic/claude-3.7-sonnet",
+                            "GPT-4o": "openai/gpt-4o",
+                            "DeepSeek R1": "deepseek/deepseek-r1:free",
+                          };
+
+                          handleStartSession(
+                            inputValue,
+                            language,
+                            skillLevel === "中级"
+                              ? "intermediate"
+                              : skillLevel === "初学者"
+                              ? "beginner"
+                              : "advanced",
+                            modelMapping[
+                              selectedModel as keyof typeof modelMapping
+                            ] || "anthropic/claude-3.7-sonnet"
+                          );
+                        }
+                      }}
+                    >
+                      ↗
+                    </Button>
+                  </Flex>
                 </Box>
               </Box>
 
@@ -411,121 +650,6 @@ function App() {
                     </Text>
                   </Button>
                 ))}
-              </Box>
-            </Box>
-
-            {/* 更精致的配置选项 */}
-            <Box
-              display="flex"
-              gap={8}
-              p={10}
-              bg="rgba(255, 255, 255, 0.9)"
-              backdropFilter="blur(30px)"
-              borderRadius="24px"
-              border="1px solid rgba(226, 232, 240, 0.8)"
-              maxW="800px"
-              w="full"
-              boxShadow="0 8px 40px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04)"
-              position="relative"
-              zIndex={1}
-              transition="all 0.3s ease"
-              _hover={{
-                transform: "translateY(-2px)",
-                boxShadow:
-                  "0 12px 48px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.06)",
-              }}
-            >
-              <Box flex={1}>
-                <Text
-                  fontSize="sm"
-                  color="#64748b"
-                  mb={4}
-                  fontWeight="700"
-                  letterSpacing="0.02em"
-                >
-                  编程语言
-                </Text>
-                <select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "16px 20px",
-                    border: "2px solid #e2e8f0",
-                    borderRadius: "16px",
-                    backgroundColor: "rgba(255, 255, 255, 0.95)",
-                    backdropFilter: "blur(10px)",
-                    fontSize: "16px",
-                    color: "#1e293b",
-                    fontWeight: "600",
-                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    outline: "none",
-                    cursor: "pointer",
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#f97316";
-                    e.target.style.boxShadow =
-                      "0 0 0 4px rgba(249, 115, 22, 0.1), 0 4px 16px rgba(0, 0, 0, 0.1)";
-                    e.target.style.transform = "translateY(-1px)";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#e2e8f0";
-                    e.target.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.06)";
-                    e.target.style.transform = "translateY(0px)";
-                  }}
-                >
-                  <option value="Python">Python</option>
-                  <option value="JavaScript">JavaScript</option>
-                  <option value="Java">Java</option>
-                  <option value="C++">C++</option>
-                </select>
-              </Box>
-
-              <Box flex={1}>
-                <Text
-                  fontSize="sm"
-                  color="#64748b"
-                  mb={4}
-                  fontWeight="700"
-                  letterSpacing="0.02em"
-                >
-                  技能水平
-                </Text>
-                <select
-                  value={skillLevel}
-                  onChange={(e) => setSkillLevel(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "16px 20px",
-                    border: "2px solid #e2e8f0",
-                    borderRadius: "16px",
-                    backgroundColor: "rgba(255, 255, 255, 0.95)",
-                    backdropFilter: "blur(10px)",
-                    fontSize: "16px",
-                    color: "#1e293b",
-                    fontWeight: "600",
-                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    outline: "none",
-                    cursor: "pointer",
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#f97316";
-                    e.target.style.boxShadow =
-                      "0 0 0 4px rgba(249, 115, 22, 0.1), 0 4px 16px rgba(0, 0, 0, 0.1)";
-                    e.target.style.transform = "translateY(-1px)";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#e2e8f0";
-                    e.target.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.06)";
-                    e.target.style.transform = "translateY(0px)";
-                  }}
-                >
-                  <option value="初学者">初学者</option>
-                  <option value="中级">中级</option>
-                  <option value="高级">高级</option>
-                </select>
               </Box>
             </Box>
           </Box>

@@ -36,6 +36,7 @@ interface AppState {
   problem: string;
   messages: Message[];
   isStreaming: boolean;
+  isInitializing: boolean; // 新增：从提交到AI首次响应的过渡状态
   error: string | null;
   challenge: Challenge | null;
 
@@ -47,9 +48,16 @@ interface AppState {
     language: string;
     skillLevel: string;
   }) => void;
+  setSessionInfo: (sessionData: {
+    sessionId: string;
+    problem: string;
+    language: string;
+    skillLevel: string;
+  }) => void; // 新增：只设置session信息，不设置初始消息
   addMessage: (message: Message) => void;
   appendStreamChunk: (chunk: string) => void;
   setIsStreaming: (isStreaming: boolean) => void;
+  setIsInitializing: (isInitializing: boolean) => void; // 新增
   setCurrentStage: (stage: Stage) => void;
   setError: (error: string | null) => void;
   setChallenge: (challenge: Challenge | null) => void;
@@ -66,6 +74,7 @@ export const useAppStore = create<AppState>((set) => ({
   problem: "",
   messages: [],
   isStreaming: false,
+  isInitializing: false, // 新增初始状态
   error: null,
   challenge: null,
 
@@ -79,6 +88,19 @@ export const useAppStore = create<AppState>((set) => ({
       skillLevel: skillLevel,
       currentStage: "problem_analysis",
       error: null,
+      isInitializing: false, // 设置初始消息时结束初始化状态
+    }),
+
+  setSessionInfo: ({ sessionId, problem, language, skillLevel }) =>
+    set({
+      sessionId: sessionId,
+      messages: [], // 空消息列表，等待AI响应
+      problem: problem,
+      language: language,
+      skillLevel: skillLevel,
+      currentStage: "problem_analysis",
+      error: null,
+      isInitializing: true, // 设置为初始化状态
     }),
 
   addMessage: (message) =>
@@ -102,6 +124,8 @@ export const useAppStore = create<AppState>((set) => ({
 
   setIsStreaming: (isStreaming) => set({ isStreaming }),
 
+  setIsInitializing: (isInitializing) => set({ isInitializing }), // 新增
+
   setCurrentStage: (stage) => set({ currentStage: stage }),
 
   setError: (error) => set({ error }),
@@ -117,6 +141,7 @@ export const useAppStore = create<AppState>((set) => ({
       problem: "",
       messages: [],
       isStreaming: false,
+      isInitializing: false, // 新增重置状态
       error: null,
       challenge: null,
     }),

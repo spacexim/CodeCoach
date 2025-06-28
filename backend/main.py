@@ -25,10 +25,10 @@ app.add_middleware(
 
 # 2. 定义数据模型
 class SessionStartRequest(BaseModel):
-    
     problem: str
     language: str
     skillLevel: str
+    model: str
 
 class HintRequest(BaseModel):
     hintRequest: str
@@ -39,10 +39,10 @@ class CodeFeedbackRequest(BaseModel):
 # 3. 会话状态管理 (升级版)
 class Session:
     """每个用户一个独立的会话对象"""
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, model: str = "anthropic/claude-3.7-sonnet"):
         self.assistant = InteractiveLearningAssistant(
             api_key=api_key,
-            model="anthropic/claude-3.7-sonnet"
+            model=model
         )
         self.problem_context: dict = {}
 
@@ -60,8 +60,8 @@ async def start_session(request: SessionStartRequest):
 
         session_id = str(uuid.uuid4())
 
-        # 使用读取到的 key 创建 Session
-        new_session = Session(api_key=api_key)
+        # 使用读取到的 key 和选择的模型创建 Session
+        new_session = Session(api_key=api_key, model=request.model)
         
         # 初始化问题上下文
         new_session.problem_context = {

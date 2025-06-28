@@ -191,8 +191,20 @@ const Sidebar: React.FC = () => {
         }}
       >
         <VStack gap={6} align="stretch">
-          {/* CodeCoach Logo */}
-          <Box>
+          {/* CodeCoach Logo - 可点击返回首页 */}
+          <Box
+            cursor="pointer"
+            onClick={() => resetSession()}
+            transition="all 0.2s"
+            title="点击返回首页开启新会话" // 添加hover提示
+            _hover={{
+              transform: "scale(1.02)",
+              opacity: 0.8,
+            }}
+            _active={{
+              transform: "scale(0.98)",
+            }}
+          >
             <Flex align="center" mb={2}>
               <Box
                 w="32px"
