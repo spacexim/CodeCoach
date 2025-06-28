@@ -44,6 +44,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
           resize="none"
           outline="none"
           bg="transparent"
+          color="#1e293b" // 设置文字颜色为深灰色
           disabled={isStreaming}
           _placeholder={{
             color: "#9ca3af",

@@ -53,6 +53,7 @@ interface AppState {
   setCurrentStage: (stage: Stage) => void;
   setError: (error: string | null) => void;
   setChallenge: (challenge: Challenge | null) => void;
+  resetSession: () => void;
 }
 
 // --- 创建 Store (修正版) ---
@@ -106,4 +107,17 @@ export const useAppStore = create<AppState>((set) => ({
   setError: (error) => set({ error }),
 
   setChallenge: (challenge) => set({ challenge }),
+
+  resetSession: () =>
+    set({
+      sessionId: null,
+      currentStage: "problem_analysis",
+      language: "Python",
+      skillLevel: "intermediate",
+      problem: "",
+      messages: [],
+      isStreaming: false,
+      error: null,
+      challenge: null,
+    }),
 }));

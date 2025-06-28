@@ -207,58 +207,6 @@ function App() {
               position="relative"
               px={4}
             >
-              {/* 更精致的logo */}
-              <Box mb={12} position="relative">
-                <Box
-                  display="inline-block"
-                  position="relative"
-                  _before={{
-                    content: '""',
-                    position: "absolute",
-                    inset: "-12px",
-                    borderRadius: "full",
-                    background:
-                      "conic-gradient(from 0deg, rgba(249, 115, 22, 0.1), rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.1), rgba(249, 115, 22, 0.1))",
-                    animation: "spin 20s linear infinite",
-                    opacity: 0,
-                    transition: "opacity 0.5s ease",
-                  }}
-                  _hover={{
-                    _before: {
-                      opacity: 1,
-                    },
-                  }}
-                >
-                  <Box
-                    p={6}
-                    bg="linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%)"
-                    borderRadius="full"
-                    boxShadow="0 8px 32px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04)"
-                    border="1px solid rgba(255, 255, 255, 0.8)"
-                    backdropFilter="blur(20px)"
-                    position="relative"
-                    zIndex={1}
-                    transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
-                    _hover={{
-                      transform: "translateY(-4px) scale(1.02)",
-                      boxShadow:
-                        "0 12px 48px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.08)",
-                    }}
-                  >
-                    <Text
-                      fontSize="48px"
-                      color="transparent"
-                      bgGradient="linear(135deg, #f97316, #ea580c, #3b82f6)"
-                      bgClip="text"
-                      lineHeight="1"
-                      filter="drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))"
-                    >
-                      🧠
-                    </Text>
-                  </Box>
-                </Box>
-              </Box>
-
               <Box mb={8}>
                 <Text
                   fontSize={{ base: "36px", md: "52px", lg: "64px" }}
@@ -268,9 +216,6 @@ function App() {
                   letterSpacing="-0.03em"
                   lineHeight="0.95"
                   fontFamily="system-ui, -apple-system, 'Segoe UI', 'SF Pro Display', sans-serif"
-                  textShadow="0 2px 8px rgba(0, 0, 0, 0.06)"
-                  bgGradient="linear(135deg, #0f172a 0%, #1e293b 50%, #374151 100%)"
-                  bgClip="text"
                   position="relative"
                   _after={{
                     content: '""',
@@ -288,12 +233,11 @@ function App() {
                 </Text>
                 <Text
                   fontSize="24px"
-                  color="#64748b"
+                  color="#374151"
                   mb={16}
                   fontWeight="400"
                   letterSpacing="-0.02em"
                   lineHeight="1.4"
-                  opacity={0.9}
                 >
                   How can I help you today?
                 </Text>
@@ -326,6 +270,7 @@ function App() {
                     resize="none"
                     outline="none"
                     bg="transparent"
+                    color="#1e293b"
                     _placeholder={{
                       color: "#9ca3af",
                     }}
@@ -384,30 +329,35 @@ function App() {
                     text: "Write",
                     desc: "创作内容",
                     color: "#f59e0b",
+                    prompt: "我想学习如何编写清晰的代码注释和文档",
                   },
                   {
                     icon: "🧠",
                     text: "Learn",
                     desc: "学习概念",
                     color: "#ec4899",
+                    prompt: "请教我数据结构中栈的基本概念和实现",
                   },
                   {
                     icon: "💻",
                     text: "Code",
                     desc: "编程实践",
                     color: "#3b82f6",
+                    prompt: "我想练习实现一个简单的排序算法",
                   },
                   {
                     icon: "🎯",
                     text: "Practice",
                     desc: "刷题练习",
                     color: "#10b981",
+                    prompt: "给我一个中等难度的算法练习题",
                   },
                   {
                     icon: "🎲",
                     text: "Surprise me",
                     desc: "随机挑战",
                     color: "#8b5cf6",
+                    prompt: "给我一个随机的编程挑战",
                   },
                 ].map((item, index) => (
                   <Button
@@ -448,6 +398,9 @@ function App() {
                     }}
                     _active={{
                       transform: "translateY(-1px)",
+                    }}
+                    onClick={() => {
+                      setInputValue(item.prompt);
                     }}
                   >
                     <Text fontSize="18px" mr={3}>
@@ -640,40 +593,11 @@ function App() {
           overflow="hidden"
           zIndex={1}
         >
-          {/* 顶部模型选择 - 与无session时保持一致 */}
-          <Box position="absolute" top={6} right={6} zIndex={10}>
-            <select
-              style={{
-                padding: "12px 18px",
-                border: "1px solid #e2e8f0",
-                borderRadius: "12px",
-                backgroundColor: "rgba(255, 255, 255, 0.95)",
-                backdropFilter: "blur(10px)",
-                fontSize: "14px",
-                color: "#374151",
-                cursor: "pointer",
-                fontWeight: "600",
-                boxShadow:
-                  "0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1)",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                outline: "none",
-              }}
-            >
-              <option>Claude Sonnet 4</option>
-              <option>GPT-4o</option>
-              <option>DeepSeek R1</option>
-            </select>
-          </Box>
-
           <Box
             flex="1"
             display="flex"
             flexDirection="column"
-            maxW="900px"
-            mx="auto"
             w="full"
-            px={8}
-            py={6}
             h="0" // 关键：确保flex子元素正确计算高度
             overflow="hidden" // 防止整体溢出
           >

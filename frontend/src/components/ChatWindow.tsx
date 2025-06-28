@@ -12,7 +12,7 @@ const ChatWindow: React.FC = () => {
       // 平滑滚动到底部
       chatWindowRef.current.scrollTo({
         top: chatWindowRef.current.scrollHeight,
-        behavior: "smooth"
+        behavior: "smooth",
       });
     }
   }, [messages]);
@@ -28,27 +28,27 @@ const ChatWindow: React.FC = () => {
       maxH="100%" // 限制最大高度
       // 自定义滚动条样式
       css={{
-        '&::-webkit-scrollbar': {
-          width: '6px',
+        "&::-webkit-scrollbar": {
+          width: "6px",
         },
-        '&::-webkit-scrollbar-track': {
-          background: 'rgba(0,0,0,0.1)',
-          borderRadius: '3px',
+        "&::-webkit-scrollbar-track": {
+          background: "rgba(0,0,0,0.1)",
+          borderRadius: "3px",
         },
-        '&::-webkit-scrollbar-thumb': {
-          background: 'rgba(0,0,0,0.2)',
-          borderRadius: '3px',
+        "&::-webkit-scrollbar-thumb": {
+          background: "rgba(0,0,0,0.2)",
+          borderRadius: "3px",
         },
-        '&::-webkit-scrollbar-thumb:hover': {
-          background: 'rgba(0,0,0,0.3)',
+        "&::-webkit-scrollbar-thumb:hover": {
+          background: "rgba(0,0,0,0.3)",
         },
       }}
     >
-      <VStack 
-        gap={6} 
-        align="stretch" 
-        maxW="800px" 
-        mx="auto" 
+      <VStack
+        gap={6}
+        align="stretch"
+        maxW="800px"
+        mx="auto"
         px={4}
         minH="full" // 确保内容至少填满容器
       >

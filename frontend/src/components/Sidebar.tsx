@@ -19,6 +19,7 @@ const Sidebar: React.FC = () => {
     setCurrentStage,
     setError,
     setChallenge,
+    resetSession,
   } = useAppStore();
   const [showConceptInput, setShowConceptInput] = useState(false);
   const [conceptInput, setConceptInput] = useState("");
@@ -95,7 +96,17 @@ const Sidebar: React.FC = () => {
         `http://localhost:8000/api/session/${sessionId}/stage/next`,
         { method: "POST" }
       );
-      if (!response.ok) throw new Error("阶段切换失败");
+      if (!response.ok) {
+        if (response.status === 404) {
+          const shouldReset = window.confirm("会话已过期，是否重新开始学习？");
+          if (shouldReset) {
+            resetSession();
+            return;
+          }
+          throw new Error("会话已过期，请重新开始学习");
+        }
+        throw new Error("阶段切换失败");
+      }
       const data = await response.json();
       if (data.success) {
         addMessage({ sender: "ai", text: data.transitionMessage });
@@ -115,9 +126,25 @@ const Sidebar: React.FC = () => {
     setChallenge(null);
     try {
       const response = await fetch(
-        `http://localhost:8000/api/session/${sessionId}/challenge`
+        `http://localhost:8000/api/session/${sessionId}/challenge`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
-      if (!response.ok) throw new Error("获取挑战失败");
+      if (!response.ok) {
+        if (response.status === 404) {
+          const shouldReset = window.confirm("会话已过期，是否重新开始学习？");
+          if (shouldReset) {
+            resetSession();
+            return;
+          }
+          throw new Error("会话已过期，请重新开始学习");
+        }
+        throw new Error("获取挑战失败");
+      }
       const data = await response.json();
       if (data.success) {
         setChallenge(data.challengeData);
@@ -156,33 +183,14 @@ const Sidebar: React.FC = () => {
         pb={2}
         css={{
           // 隐藏滚动条但保持功能
-          '&::-webkit-scrollbar': {
-            display: 'none',
+          "&::-webkit-scrollbar": {
+            display: "none",
           },
-          scrollbarWidth: 'none', // Firefox
-          msOverflowStyle: 'none', // IE
+          scrollbarWidth: "none", // Firefox
+          msOverflowStyle: "none", // IE
         }}
       >
         <VStack gap={6} align="stretch">
-          {/* New chat 按钮 */}
-          <Button
-            bg="#ff6b35"
-            color="white"
-            borderRadius="12px"
-            py={3}
-            fontSize="14px"
-            fontWeight="600"
-            w="full"
-            _hover={{ bg: "#e55a2e", transform: "translateY(-1px)" }}
-            transition="all 0.2s ease"
-            boxShadow="0 2px 8px rgba(255, 107, 53, 0.2)"
-          >
-            <Text fontSize="16px" mr={2}>
-              +
-            </Text>
-            New chat
-          </Button>
-
           {/* CodeCoach Logo */}
           <Box>
             <Flex align="center" mb={2}>
