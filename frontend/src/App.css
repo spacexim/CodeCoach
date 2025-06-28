@@ -1,0 +1,215 @@
+/* frontend/src/App.css */
+#root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+}
+
+/* 1. 定义顶层应用布局 */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* 2. 定义侧边栏样式 */
+.sidebar {
+  width: 280px;
+  flex-shrink: 0; /* 防止侧边栏被压缩 */
+  background-color: #1a1a1a;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* 增加工具组之间的间距 */
+  border-right: 1px solid #3a3a3a;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  margin-top: 0;
+  color: #646cff;
+}
+
+.sidebar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sidebar-group button,
+.sidebar-group select {
+  width: 100%;
+}
+
+.stage-indicator {
+  padding: 0.8rem;
+  background-color: rgba(100, 108, 255, 0.1);
+  border: 1px solid #646cff;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* 3. 定义主内容区样式 */
+.main-content {
+  flex-grow: 1; /* 占据所有剩余空间 */
+  padding: 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box; /* 确保 padding 不会撑破容器 */
+}
+
+/* --- 以下是聊天窗口、消息气泡等原有样式，保持不变 --- */
+
+.chat-window {
+  flex-grow: 1; /* 占据主内容区的剩余垂直空间 */
+  overflow-y: auto;
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.message-bubble {
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  max-width: 90%;
+  word-wrap: break-word;
+}
+
+.message-bubble pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
+.user-message {
+  background-color: #007bff;
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+
+.ai-message {
+  background-color: #3a3a3a;
+  color: #f0f0f0;
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+
+.input-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem; /* 给工具输入框一些上边距 */
+  flex-shrink: 0;
+}
+
+.input-bar input {
+  flex-grow: 1;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #555;
+  background-color: #1a1a1a;
+}
+
+/* ... 其他已有样式 (button, modal等) ... */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background-color: #2f2f2f;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+.modal-content pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: #1a1a1a;
+  padding: 1rem;
+  border-radius: 4px;
+}
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+/* --- 初始会话表单的样式 --- */
+.form-container {
+  max-width: 600px;
+  margin: 4rem auto; /* 上下留出空隙，并水平居中 */
+  padding: 2.5rem;
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  border: 1px solid #3a3a3a;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem; /* 增加表单项之间的间距 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.form-container h1 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  text-align: center;
+  color: #f0f0f0;
+}
+
+.form-container input,
+.form-container textarea,
+.form-container select {
+  padding: 0.8em 1.2em;
+  font-size: 1em;
+  border-radius: 8px;
+  border: 1px solid #555;
+  background-color: #242424;
+  color: #f0f0f0;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.form-container input:focus,
+.form-container textarea:focus,
+.form-container select:focus {
+  outline: none;
+  border-color: #646cff;
+}
+
+.form-container button {
+  margin-top: 0.5rem;
+  padding: 0.8em 1.2em;
+  font-size: 1.1em;
+  background-color: #646cff;
+  color: white;
+}
