@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAppStore } from "../store";
 import { Box, Textarea, Button, Spinner } from "@chakra-ui/react";
+import { ArrowUp } from "lucide-react";
 
 interface ChatInputProps {
   onSendMessage: (messageText: string) => void;
@@ -21,16 +22,18 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
     <Box position="relative" maxW="800px" mx="auto" w="full">
       <Box
         position="relative"
-        border="1px solid"
-        borderColor="#E5E7EB"
+        border="1px solid rgba(61, 57, 41, 0.15)"
         borderRadius="12px"
-        bg="white"
-        boxShadow="0 1px 3px rgba(0, 0, 0, 0.05)"
-        _focusWithin={{
-          borderColor: "#bd5d3a",
-          boxShadow: "0 0 0 3px rgba(189, 93, 58, 0.1)",
+        bg="rgba(255, 255, 255, 0.95)"
+        boxShadow="0 1px 3px 0 rgba(61, 57, 41, 0.1)"
+        _hover={{
+          borderColor: "rgba(61, 57, 41, 0.25)",
         }}
-        transition="border-color 0.2s ease, box-shadow 0.2s ease"
+        _focusWithin={{
+          borderColor: "rgba(61, 57, 41, 0.25)",
+          boxShadow: "0 2px 6px 0 rgba(61, 57, 41, 0.15)",
+        }}
+        transition="all 0.2s ease-in-out"
       >
         <Textarea
           value={inputValue}
@@ -47,10 +50,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
           outline="none"
           bg="transparent"
           color="#3d3929"
-          fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+          fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
           disabled={isStreaming}
           _placeholder={{
-            color: isStreaming ? "#bd5d3a" : "#9CA3AF",
+            color: "#9CA3AF",
           }}
           _focus={{
             outline: "none",
@@ -84,7 +87,11 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
           transition="all 0.2s ease"
           onClick={handleSend}
         >
-          {isStreaming ? <Spinner size="sm" color="white" /> : "↗"}
+          {isStreaming ? (
+            <Spinner size="sm" color="white" />
+          ) : (
+            <ArrowUp size="16px" />
+          )}
         </Button>
       </Box>
     </Box>

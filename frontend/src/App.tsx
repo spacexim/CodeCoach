@@ -5,14 +5,7 @@ import ChatWindow from "./components/ChatWindow";
 import ChatInput from "./components/ChatInput";
 import RightPanel from "./components/RightPanel";
 import ChallengeModal from "./components/ChallengeModal";
-import {
-  PenTool,
-  BookOpen,
-  Code,
-  Dices,
-  GraduationCap,
-  Pencil,
-} from "lucide-react";
+import { Code, Dices, GraduationCap, Pencil, ArrowUp } from "lucide-react";
 import {
   Box,
   Flex,
@@ -37,7 +30,7 @@ function App() {
   const ws = React.useRef<WebSocket | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [language, setLanguage] = useState("Python");
-  const [skillLevel, setSkillLevel] = useState("中级");
+  const [skillLevel, setSkillLevel] = useState("intermediate");
   const [selectedModel, setSelectedModel] = useState("Claude 3.7 Sonnet");
 
   // 选择器数据
@@ -52,9 +45,9 @@ function App() {
 
   const skillLevelOptions = createListCollection({
     items: [
-      { label: "初学者", value: "初学者" },
-      { label: "中级", value: "中级" },
-      { label: "高级", value: "高级" },
+      { label: "Beginner", value: "beginner" },
+      { label: "Intermediate", value: "intermediate" },
+      { label: "Advanced", value: "advanced" },
     ],
   });
 
@@ -188,7 +181,7 @@ function App() {
             flexDirection="column"
             justifyContent="center"
             alignItems="center"
-            px={8}
+            px={4}
             position="relative"
             maxW="100%"
             overflow="hidden"
@@ -198,10 +191,10 @@ function App() {
             <Box
               textAlign="center"
               mb={8}
-              maxW="1000px"
+              maxW="1400px"
               zIndex={1}
               position="relative"
-              px={4}
+              px={2}
             >
               <Box mb={8}>
                 <Flex align="center" justify="center" mb={4}>
@@ -211,7 +204,7 @@ function App() {
                   <Text
                     fontSize={{ base: "28px", md: "36px", lg: "40px" }}
                     fontWeight="400"
-                    color="#3d3929"
+                    color="#3d3d3a"
                     letterSpacing="-0.02em"
                     lineHeight="1.2"
                     fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
@@ -233,7 +226,7 @@ function App() {
               </Box>
 
               {/* Claude风格输入框 */}
-              <Box position="relative" maxW="1000px" mx="auto" mb={8}>
+              <Box position="relative" maxW="1400px" mx="auto" mb={8}>
                 <Box
                   position="relative"
                   border="1px solid rgba(61, 57, 41, 0.15)"
@@ -252,7 +245,7 @@ function App() {
                   <Textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="How can I help you today?"
+                    placeholder="Enter your problem here..."
                     w="100%"
                     minH="100px"
                     p={4}
@@ -304,7 +297,7 @@ function App() {
                             fontSize="14px"
                             color="rgba(61, 57, 41, 0.7)"
                             fontWeight="500"
-                            fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+                            fontFamily="'StyreneB', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                             _hover={{
                               bg: "rgba(61, 57, 41, 0.05)",
                               color: "#3d3929",
@@ -331,7 +324,7 @@ function App() {
                                 py={2}
                                 fontSize="14px"
                                 color="#3d3929"
-                                fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+                                fontFamily="'StyreneB', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                                 _hover={{ bg: "rgba(61, 57, 41, 0.05)" }}
                               >
                                 <Select.ItemText>{item.label}</Select.ItemText>
@@ -360,7 +353,7 @@ function App() {
                             fontSize="14px"
                             color="rgba(61, 57, 41, 0.7)"
                             fontWeight="500"
-                            fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+                            fontFamily="'StyreneB', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                             _hover={{
                               bg: "rgba(61, 57, 41, 0.05)",
                               color: "#3d3929",
@@ -386,7 +379,7 @@ function App() {
                                 py={2}
                                 fontSize="14px"
                                 color="#3d3929"
-                                fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+                                fontFamily="'StyreneB', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                                 _hover={{ bg: "rgba(61, 57, 41, 0.05)" }}
                               >
                                 <Select.ItemText>{item.label}</Select.ItemText>
@@ -418,7 +411,7 @@ function App() {
                             fontSize="14px"
                             color="rgba(61, 57, 41, 0.7)"
                             fontWeight="500"
-                            fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+                            fontFamily="'StyreneB', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                             _hover={{
                               bg: "rgba(61, 57, 41, 0.05)",
                               color: "#3d3929",
@@ -444,7 +437,7 @@ function App() {
                                 py={2}
                                 fontSize="14px"
                                 color="#3d3929"
-                                fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+                                fontFamily="'StyreneB', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                                 _hover={{ bg: "rgba(61, 57, 41, 0.05)" }}
                               >
                                 <Select.ItemText>{item.label}</Select.ItemText>
@@ -457,20 +450,14 @@ function App() {
                       <Button
                         w="32px"
                         h="32px"
-                        bg={
-                          inputValue.trim()
-                            ? "#bd5d3a"
-                            : "rgba(61, 57, 41, 0.15)"
-                        }
+                        bg={inputValue.trim() ? "#bd5d3a" : "#e4b1a0"}
                         color="white"
                         borderRadius="6px"
                         minW="32px"
                         fontSize="16px"
                         disabled={!inputValue.trim()}
                         _hover={{
-                          bg: inputValue.trim()
-                            ? "#a04d2f"
-                            : "rgba(61, 57, 41, 0.15)",
+                          bg: inputValue.trim() ? "#a04d2f" : "#e4b1a0",
                           transform: inputValue.trim()
                             ? "translateY(-1px)"
                             : "none",
@@ -488,11 +475,7 @@ function App() {
                             handleStartSession(
                               inputValue,
                               language,
-                              skillLevel === "中级"
-                                ? "intermediate"
-                                : skillLevel === "初学者"
-                                ? "beginner"
-                                : "advanced",
+                              skillLevel,
                               modelMapping[
                                 selectedModel as keyof typeof modelMapping
                               ] || "anthropic/claude-3.7-sonnet"
@@ -500,7 +483,7 @@ function App() {
                           }
                         }}
                       >
-                        ↗
+                        <ArrowUp />
                       </Button>
                     </Flex>
                   </Flex>
@@ -546,17 +529,17 @@ function App() {
                     py={3}
                     h="auto"
                     bg="transparent"
-                    border="1px solid rgba(61, 57, 41, 0.15)"
+                    border="0.5px solid rgba(61, 57, 41, 0.15)"
                     borderRadius="8px"
-                    color="#3d3929"
+                    color="#3d3d3a"
                     fontSize="14px"
                     fontWeight="500"
-                    fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                     backdropFilter="blur(15px)"
                     _hover={{
                       borderColor: "rgba(61, 57, 41, 0.25)",
                       transform: "translateY(-1px)",
                       boxShadow: "0 2px 8px -1px rgba(61, 57, 41, 0.15)",
+                      color: "#141413",
                     }}
                     transition="all 0.2s"
                     onClick={() => {
@@ -564,8 +547,10 @@ function App() {
                     }}
                   >
                     <Flex align="center" gap={2}>
-                      <item.icon size={16} color="rgba(61, 57, 41, 0.7)" />
-                      <Text>{item.text}</Text>
+                      <item.icon size={16} color="#73726c" />
+                      <Text fontFamily="'StyreneB', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif">
+                        {item.text}
+                      </Text>
                     </Flex>
                   </Button>
                 ))}

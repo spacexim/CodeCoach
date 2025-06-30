@@ -16,7 +16,7 @@ const CodeImplementation: React.FC = () => {
     <VStack
       align="stretch"
       gap={4}
-      bg="rgba(245, 244, 237, 0.8)"
+      bg="#f5f4ed"
       p={6}
       borderRadius="12px"
       border="1px solid rgba(61, 57, 41, 0.1)"
@@ -28,7 +28,7 @@ const CodeImplementation: React.FC = () => {
         border="1px solid rgba(61, 57, 41, 0.1)"
         borderRadius="8px"
         overflow="hidden"
-        bg="rgba(245, 244, 237, 0.8)"
+        bg="#f5f4ed"
       >
         <Editor
           height="40vh"
@@ -39,8 +39,7 @@ const CodeImplementation: React.FC = () => {
           options={{
             fontSize: 14,
             lineHeight: 20,
-            fontFamily:
-              "'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace",
+            fontFamily: "'JetBrains Mono', monospace",
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
             wordWrap: "on",
@@ -50,6 +49,12 @@ const CodeImplementation: React.FC = () => {
             lineDecorationsWidth: 0,
             lineNumbersMinChars: 3,
             renderLineHighlight: "none",
+            guides: {
+              indentation: false,
+            },
+            rulers: [],
+            overviewRulerBorder: false,
+            hideCursorInOverviewRuler: true,
             scrollbar: {
               vertical: "auto",
               horizontal: "auto",

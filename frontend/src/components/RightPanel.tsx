@@ -4,6 +4,7 @@ import { useAppStore } from "../store";
 import { Box, Button, VStack, Text, Flex, Collapsible } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import MarkdownRenderer from "./MarkdownRenderer";
+import { PanelRight, FileText, Code2 } from "lucide-react";
 
 const RightPanel: React.FC = () => {
   const {
@@ -24,8 +25,11 @@ const RightPanel: React.FC = () => {
       return;
     }
 
-    // 如果当前不在代码实现阶段，先跳转到代码实现阶段
-    if (currentStage !== "implementation") {
+    // 如果当前不在代码实现或测试优化阶段，先跳转到代码实现阶段
+    if (
+      currentStage !== "implementation" &&
+      currentStage !== "testing_refinement"
+    ) {
       setCurrentStage("implementation");
     }
 
@@ -42,12 +46,26 @@ const RightPanel: React.FC = () => {
     setCurrentStage("implementation");
   };
 
-  const handleClearCode = () => {
-    setCode("# 在这里开始编写你的代码...\n");
+  // Define a custom theme for the editor on mount
+  const handleEditorMount = (_editor: unknown, monaco: unknown) => {
+    (monaco as any).editor.defineTheme("customTheme", {
+      base: "vs",
+      inherit: true,
+      rules: [],
+      colors: {
+        "editor.background": "#f5f4ed",
+        "editorGutter.background": "#f5f4ed",
+        "editor.lineHighlightBackground": "rgba(61, 57, 41, 0.05)",
+        "scrollbarSlider.background": "#d4d3c9",
+        "scrollbarSlider.hoverBackground": "#c4c3b9",
+        "scrollbarSlider.activeBackground": "#b4b3a9",
+      },
+    });
   };
 
   // 根据当前阶段确定显示内容
-  const isCodeStage = currentStage === "implementation";
+  const isCodeStage =
+    currentStage === "implementation" || currentStage === "testing_refinement";
   const canSubmitCode =
     currentStage === "problem_analysis" || currentStage === "solution_design";
 
@@ -70,55 +88,51 @@ const RightPanel: React.FC = () => {
           <VStack gap={4} align="center">
             {/* 切换按钮 */}
             <Button
-              size="sm"
+              variant="ghost"
               w="40px"
               h="40px"
-              borderRadius="8px"
-              bg="rgba(218, 119, 86, 0.1)"
-              color="#da7756"
-              _hover={{ bg: "rgba(218, 119, 86, 0.15)" }}
-              _focus={{ boxShadow: "none", outline: "none" }}
+              borderRadius="6px"
+              bg="transparent"
+              color="#73726c"
+              _hover={{ bg: "rgba(61, 57, 41, 0.08)", color: "#3d3d3a" }}
+              _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
               onClick={toggleRightPanel}
               title="展开右侧面板"
             >
-              ←
+              <PanelRight />
             </Button>
 
             {/* 问题描述图标 */}
-            <Box
+            <Button
+              variant="ghost"
               w="40px"
               h="40px"
-              bg="rgba(218, 119, 86, 0.1)"
-              color="#da7756"
-              borderRadius="8px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              cursor="pointer"
+              bg="transparent"
+              borderRadius="6px"
+              color="#73726c"
+              _hover={{ bg: "rgba(61, 57, 41, 0.08)", color: "#3d3d3a" }}
+              _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
               onClick={toggleRightPanel}
               title="问题描述"
-              _hover={{ bg: "rgba(218, 119, 86, 0.15)" }}
             >
-              <Text fontSize="18px">📋</Text>
-            </Box>
+              <FileText />
+            </Button>
 
             {/* 代码图标 */}
-            <Box
+            <Button
+              variant="ghost"
               w="40px"
               h="40px"
-              bg="rgba(218, 119, 86, 0.1)"
-              color="#da7756"
-              borderRadius="8px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              cursor="pointer"
+              bg="transparent"
+              borderRadius="6px"
+              color="#73726c"
+              _hover={{ bg: "rgba(61, 57, 41, 0.08)", color: "#3d3d3a" }}
+              _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
               onClick={toggleRightPanel}
               title="代码编辑器"
-              _hover={{ bg: "rgba(218, 119, 86, 0.15)" }}
             >
-              <Text fontSize="18px">💻</Text>
-            </Box>
+              <Code2 />
+            </Button>
           </VStack>
         </Box>
       ) : (
@@ -131,22 +145,27 @@ const RightPanel: React.FC = () => {
             bg="rgba(245, 244, 237, 0.8)"
           >
             <Flex justify="space-between" align="center">
-              <Text fontSize="16px" fontWeight="600" color="#3d3929">
-                {isCodeStage ? "代码实现区" : "学习助手"}
+              <Text
+                fontFamily="Georgia, 'Times New Roman', Times, serif"
+                fontSize="20px"
+                fontWeight="600"
+                color="#3d3929"
+              >
+                Code
               </Text>
               <Button
-                size="sm"
-                w="32px"
-                h="32px"
+                variant="ghost"
+                w="40px"
+                h="40px"
                 borderRadius="6px"
-                bg="rgba(218, 119, 86, 0.1)"
-                color="#da7756"
-                _hover={{ bg: "rgba(218, 119, 86, 0.15)" }}
-                _focus={{ boxShadow: "none", outline: "none" }}
+                bg="transparent"
+                color="#73726c"
+                _hover={{ bg: "rgba(61, 57, 41, 0.08)", color: "#3d3d3a" }}
+                _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
                 onClick={toggleRightPanel}
-                title="收起右侧面板"
+                title="展开右侧面板"
               >
-                →
+                <PanelRight />
               </Button>
             </Flex>
           </Box>
@@ -184,9 +203,13 @@ const RightPanel: React.FC = () => {
                     borderRadius="0"
                     boxShadow="none"
                   >
-                    <Flex align="center" gap={2}>
-                      <Text fontSize="16px">📋</Text>
-                      <Text fontSize="14px" fontWeight="600" color="#3d3929">
+                    <Flex align="center" gap={3}>
+                      <FileText size={18} />
+                      <Text
+                        fontSize="14px"
+                        fontWeight="600"
+                        fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+                      >
                         当前问题
                       </Text>
                     </Flex>
@@ -232,23 +255,18 @@ const RightPanel: React.FC = () => {
             {isCodeStage ? (
               // 代码实现阶段：显示代码编辑器
               <>
-                <Box
-                  flex="1"
-                  border="0"
-                  overflow="hidden"
-                  bg="rgba(245, 244, 237, 0.8)"
-                >
+                <Box flex="1" border="0" overflow="hidden" bg="#f5f4ed">
                   <Editor
+                    onMount={handleEditorMount}
                     height="100%"
                     language={language.toLowerCase()}
                     value={code}
                     onChange={(value) => setCode(value || "")}
-                    theme="light"
+                    theme="customTheme"
                     options={{
                       fontSize: 14,
                       lineHeight: 20,
-                      fontFamily:
-                        "'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace",
+                      fontFamily: "'JetBrains Mono', monospace",
                       minimap: { enabled: false },
                       scrollBeyondLastLine: false,
                       wordWrap: "on",
@@ -258,6 +276,12 @@ const RightPanel: React.FC = () => {
                       lineDecorationsWidth: 0,
                       lineNumbersMinChars: 3,
                       renderLineHighlight: "none",
+                      guides: {
+                        indentation: false,
+                      },
+                      rulers: [],
+                      overviewRulerBorder: false,
+                      hideCursorInOverviewRuler: true,
                       scrollbar: {
                         vertical: "auto",
                         horizontal: "auto",
@@ -292,55 +316,24 @@ const RightPanel: React.FC = () => {
                     >
                       获取代码反馈
                     </Button>
-                    <Button
-                      w="full"
-                      variant="outline"
-                      borderColor="rgba(61, 57, 41, 0.3)"
-                      color="rgba(61, 57, 41, 0.7)"
-                      _hover={{
-                        bg: "rgba(61, 57, 41, 0.05)",
-                        borderColor: "rgba(61, 57, 41, 0.4)",
-                      }}
-                      _active={{
-                        bg: "rgba(61, 57, 41, 0.1)",
-                        borderColor: "rgba(61, 57, 41, 0.4)",
-                      }}
-                      _focus={{
-                        boxShadow: "none",
-                        outline: "none",
-                        borderColor: "rgba(61, 57, 41, 0.4)",
-                      }}
-                      borderRadius="8px"
-                      fontWeight="500"
-                      fontSize="14px"
-                      h="36px"
-                      onClick={handleClearCode}
-                    >
-                      清空代码
-                    </Button>
                   </VStack>
                 </Box>
               </>
             ) : (
               // 前两个阶段：显示代码编辑器但按钮功能不同
               <>
-                <Box
-                  flex="1"
-                  border="0"
-                  overflow="hidden"
-                  bg="rgba(245, 244, 237, 0.8)"
-                >
+                <Box flex="1" border="0" overflow="hidden" bg="#f5f4ed">
                   <Editor
+                    onMount={handleEditorMount}
                     height="100%"
                     language={language.toLowerCase()}
                     value={code}
                     onChange={(value) => setCode(value || "")}
-                    theme="light"
+                    theme="customTheme"
                     options={{
                       fontSize: 14,
                       lineHeight: 20,
-                      fontFamily:
-                        "'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace",
+                      fontFamily: "'JetBrains Mono', monospace",
                       minimap: { enabled: false },
                       scrollBeyondLastLine: false,
                       wordWrap: "on",
@@ -350,6 +343,12 @@ const RightPanel: React.FC = () => {
                       lineDecorationsWidth: 0,
                       lineNumbersMinChars: 3,
                       renderLineHighlight: "none",
+                      guides: {
+                        indentation: false,
+                      },
+                      rulers: [],
+                      overviewRulerBorder: false,
+                      hideCursorInOverviewRuler: true,
                       scrollbar: {
                         vertical: "auto",
                         horizontal: "auto",

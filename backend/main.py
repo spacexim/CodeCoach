@@ -249,7 +249,18 @@ async def transition_to_next_stage(session_id: str):
         # 4. 将过渡消息添加到对话历史
         ctx["conversation_history"].append({"role": "assistant", "content": transition_message})
         
-        return {"success": True, "transitionMessage": transition_message, "newStage": new_stage}
+        # 5. 检查新阶段是否为最后一个阶段
+        new_stage_index = learning_stages.index(new_stage)
+        is_last_stage = new_stage_index >= len(learning_stages) - 1
+        
+        return {
+            "success": True, 
+            "transitionMessage": transition_message, 
+            "newStage": new_stage,
+            "isLastStage": is_last_stage,
+            "stageIndex": new_stage_index,
+            "totalStages": len(learning_stages)
+        }
 
     except Exception as e:
         print(f"阶段转换失败, Session ID: {session_id}, Error: {e}")
@@ -292,6 +303,91 @@ async def create_mini_challenge(session_id: str):
 
     except Exception as e:
         print(f"创建微型挑战失败, Session ID: {session_id}, Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 4.8.1. HTTP 端点：完成学习
+@app.post("/api/session/{session_id}/complete")
+async def complete_learning(session_id: str):
+    """
+    完成当前问题的学习，生成学习总结，并为开始新问题做准备。
+    """
+    current_session = SESSIONS.get(session_id)
+    if not current_session:
+        raise HTTPException(status_code=404, detail="会话未找到。")
+
+    try:
+        ctx = current_session.problem_context
+        
+        # 检查是否已经到达最后一个阶段
+        if ctx["current_stage"] != "reflection":
+            return {"success": False, "message": "请先完成所有学习阶段再进行总结。", "currentStage": ctx["current_stage"]}
+
+        # 生成学习完成总结
+        history_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in ctx["conversation_history"]])
+        
+        # 调用AI生成学习总结
+        learning_summary = current_session.assistant.generate_learning_summary(
+            problem=ctx["problem"],
+            language=ctx["language"],
+            skill_level=ctx["skill_level"],
+            conversation_history=history_text
+        )
+        
+        # 将总结添加到对话历史
+        ctx["conversation_history"].append({"role": "assistant", "content": learning_summary})
+        
+        # 标记学习状态为已完成
+        ctx["learning_completed"] = True
+        ctx["completion_time"] = asyncio.get_event_loop().time()
+        
+        return {
+            "success": True, 
+            "learningCompleted": True,
+            "summary": learning_summary,
+            "message": "恭喜！您已经完成了这个问题的学习。现在可以开始新的问题了。"
+        }
+
+    except Exception as e:
+        print(f"完成学习失败, Session ID: {session_id}, Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 4.8.2. HTTP 端点：检查学习状态
+@app.get("/api/session/{session_id}/status")
+async def get_learning_status(session_id: str):
+    """
+    获取当前学习会话的状态信息。
+    """
+    current_session = SESSIONS.get(session_id)
+    if not current_session:
+        raise HTTPException(status_code=404, detail="会话未找到。")
+
+    try:
+        ctx = current_session.problem_context
+        
+        # 定义学习阶段的顺序
+        learning_stages = ["problem_analysis", "solution_design", "implementation", "testing_refinement", "reflection"]
+        
+        try:
+            current_index = learning_stages.index(ctx["current_stage"])
+        except ValueError:
+            current_index = 0
+
+        is_last_stage = current_index >= len(learning_stages) - 1
+        learning_completed = ctx.get("learning_completed", False)
+        
+        return {
+            "success": True,
+            "currentStage": ctx["current_stage"],
+            "currentStageIndex": current_index,
+            "totalStages": len(learning_stages),
+            "isLastStage": is_last_stage,
+            "learningCompleted": learning_completed,
+            "canTransitionNext": not is_last_stage and not learning_completed,
+            "canComplete": is_last_stage and not learning_completed
+        }
+
+    except Exception as e:
+        print(f"获取学习状态失败, Session ID: {session_id}, Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # 5. WebSocket 端点：现在路径中包含 session_id

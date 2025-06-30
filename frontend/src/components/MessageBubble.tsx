@@ -56,11 +56,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             color={isUser ? "#3d3929" : "#3d3929"}
             px={4}
             py={3}
-            borderRadius="16px"
+            borderRadius="12px"
             maxW="100%"
             minH="44px" // 添加最小高度，防止抖动
             boxShadow={isUser ? "none" : "none"}
-            border={isUser ? "1px solid rgba(61, 57, 41, 0.1)" : "none"}
+            border={"none"}
             backdropFilter="none"
             position="relative"
             transition="none" // 禁用过渡动画，减少抖动
@@ -68,22 +68,24 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             _after={{}}
           >
             {isUser ? (
-              <Text
-                fontSize="15px"
+              <Box
+                fontSize="16px"
+                color="#141413"
                 lineHeight="1.5"
                 whiteSpace="pre-wrap"
                 fontWeight="400"
-                fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+                fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
               >
-                {message.text}
-              </Text>
+                <MarkdownRenderer content={message.text} />
+              </Box>
             ) : (
               <Box
-                fontSize="15px"
+                fontSize="16px"
+                color="#141413"
                 lineHeight="1.6"
                 minH="20px" // 为AI消息添加最小高度
                 wordBreak="break-word" // 确保长单词正确换行
-                fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+                fontFamily="'Tiempos Text', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
               >
                 <MarkdownRenderer content={message.text} />
               </Box>
@@ -104,7 +106,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             boxShadow="0 2px 8px rgba(100, 116, 139, 0.3)"
           >
             <Text fontSize="16px" color="white">
-              👤
+              👨‍💻
             </Text>
           </Box>
         )}

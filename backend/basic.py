@@ -684,6 +684,78 @@ class InteractiveLearningAssistant:
             "explanation": explanation
         }
 
+    def generate_learning_summary(self, problem: str, language: str, skill_level: str,
+                                conversation_history: str) -> str:
+        """
+        Generate a comprehensive learning summary for the completed problem.
+
+        Args:
+            problem: The original programming problem
+            language: Programming language used
+            skill_level: Student's skill level
+            conversation_history: Complete conversation history
+
+        Returns:
+            A comprehensive learning summary message
+        """
+        # 首先检查是否已经初始化了学习总结链
+        if not hasattr(self, 'learning_summary_chain'):
+            self._initialize_learning_summary_chain()
+        
+        result = self.learning_summary_chain({
+            "problem": problem,
+            "language": language,
+            "skill_level": skill_level,
+            "conversation_history": conversation_history
+        })
+
+        return result["summary"]
+
+    def _initialize_learning_summary_chain(self):
+        """Initialize the learning summary chain."""
+        learning_summary_template = """
+        You are an Interactive Programming Learning Assistant. Your task is to generate a comprehensive learning summary for a student who has just completed a programming problem.
+
+        Based on the following information, create a personalized learning summary:
+
+        Problem: {problem}
+        Language: {language}
+        Student Skill Level: {skill_level}
+        
+        Complete Learning Journey:
+        {conversation_history}
+
+        ## Instructions:
+        Create a comprehensive learning summary that includes:
+
+        1. **Problem Overview**: Briefly recap what the student accomplished
+        2. **Key Concepts Learned**: List the main programming concepts and techniques covered
+        3. **Learning Highlights**: Identify the student's strongest moments and breakthroughs
+        4. **Areas of Growth**: Mention areas where the student showed improvement
+        5. **Skills Developed**: Technical and problem-solving skills gained
+        6. **Next Steps**: Suggest what types of problems or concepts to explore next
+
+        ## Requirements:
+        - Be encouraging and celebrate the student's achievement
+        - Make it personal based on their actual learning journey
+        - Keep it concise but comprehensive (300-400 words)
+        - End with congratulations and motivation for continued learning
+        - Use a warm, supportive tone that builds confidence
+
+        Generate the learning summary:
+        """
+
+        learning_summary_prompt = PromptTemplate(
+            template=learning_summary_template,
+            input_variables=["problem", "language", "skill_level", "conversation_history"]
+        )
+
+        self.learning_summary_chain = LLMChain(
+            llm=self.llm,
+            prompt=learning_summary_prompt,
+            output_key="summary"
+        )
+
 
 
 

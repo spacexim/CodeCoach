@@ -5,6 +5,7 @@ import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import App from "./App.tsx";
 import "./App.css";
 import "./claude-theme.css";
+import "./styles/fonts.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

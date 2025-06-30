@@ -1,8 +1,15 @@
 // frontend/src/components/Sidebar.tsx
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useAppStore, learning_stages, type Stage } from "../store";
 import { Box, Button, VStack, Text, Input, Flex } from "@chakra-ui/react";
-import { MessageCircle, Target, Code, Brain, Album } from "lucide-react";
+import {
+  MessageCircle,
+  Target,
+  Code,
+  Album,
+  PanelLeft,
+  Check,
+} from "lucide-react";
 
 const stageDisplayNames: Record<Stage, string> = {
   problem_analysis: "问题分析",
@@ -11,6 +18,76 @@ const stageDisplayNames: Record<Stage, string> = {
   testing_refinement: "测试与优化",
   reflection: "反思与总结",
 };
+
+// Reusable button component for the sidebar
+const SidebarButton: React.FC<{
+  icon: React.ReactNode;
+  text: string;
+  onClick: () => void;
+  isCollapsed: boolean;
+  showText: boolean;
+  disabled?: boolean;
+  title?: string;
+  [key: string]: unknown;
+}> = ({
+  icon,
+  text,
+  onClick,
+  isCollapsed,
+  showText,
+  disabled = false,
+  ...props
+}) => (
+  <Box
+    as="button"
+    w="full"
+    h="40px"
+    display="flex"
+    alignItems="center"
+    justifyContent={isCollapsed ? "center" : "flex-start"}
+    px={isCollapsed ? 0 : 3}
+    borderRadius="6px"
+    bg="transparent"
+    color={disabled ? "#b0afaa" : "#73726c"}
+    cursor={disabled ? "not-allowed" : "pointer"}
+    _hover={!disabled ? { bg: "rgba(61, 57, 41, 0.08)", color: "#3d3d3a" } : {}}
+    _active={!disabled ? { bg: "rgba(61, 57, 41, 0.12)" } : {}}
+    _disabled={{ cursor: "not-allowed", color: "#b0afaa" }}
+    onClick={!disabled ? onClick : () => {}}
+    transition="background-color 0.2s, justify-content 0.2s, padding 0.2s, color 0.2s"
+    textAlign="left"
+    overflow="hidden"
+    {...props}
+  >
+    <Box
+      w="20px"
+      mr={isCollapsed ? 0 : "12px"}
+      display="flex"
+      justifyContent="center"
+      transition="margin 0.2s"
+    >
+      {icon}
+    </Box>
+    <Box
+      opacity={!isCollapsed && showText ? 1 : 0}
+      transform={
+        !isCollapsed && showText ? "translateX(0)" : "translateX(-10px)"
+      }
+      // MODIFICATION: Collapse the box when not visible to remove it from layout
+      maxWidth={!isCollapsed ? "100%" : 0}
+      transition="opacity 0.2s ease-out, transform 0.2s ease-out, max-width 0.2s ease-in-out"
+      whiteSpace="nowrap"
+    >
+      <Text
+        fontSize="14px"
+        fontWeight="500"
+        fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+      >
+        {text}
+      </Text>
+    </Box>
+  </Box>
+);
 
 const Sidebar: React.FC = () => {
   const {
@@ -24,19 +101,63 @@ const Sidebar: React.FC = () => {
     sidebarCollapsed,
     toggleSidebar,
     toggleRightPanel,
+    completeLearning,
+    learningCompleted,
   } = useAppStore();
+
   const [showConceptInput, setShowConceptInput] = useState(false);
   const [conceptInput, setConceptInput] = useState("");
   const [showHintInput, setShowHintInput] = useState(false);
   const [hintInput, setHintInput] = useState("");
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // A state to control the visibility of text content to sync with sidebar animation
+  const [showText, setShowText] = useState(!sidebarCollapsed);
+
+  // Ref for the floating input box to detect clicks outside
+  const floatingBoxRef = useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    let timer: number;
+    if (sidebarCollapsed) {
+      setShowText(false);
+    } else {
+      // Delay showing text to make the transition smoother
+      timer = setTimeout(() => {
+        setShowText(true);
+      }, 150); // This duration should be close to the transition duration
+    }
+    return () => clearTimeout(timer);
+  }, [sidebarCollapsed]);
+
+  // Handle clicking outside the floating input box
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        floatingBoxRef.current &&
+        !floatingBoxRef.current.contains(event.target as Node) &&
+        sidebarCollapsed &&
+        (showConceptInput || showHintInput)
+      ) {
+        setShowConceptInput(false);
+        setShowHintInput(false);
+      }
+    };
+
+    if (sidebarCollapsed && (showConceptInput || showHintInput)) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [sidebarCollapsed, showConceptInput, showHintInput]);
+
   const handleApiCall = async (
     url: string,
     options: RequestInit,
     userMessage: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    successCallback: (data: any) => void
+    successCallback: (data: unknown) => void
   ) => {
     if (!sessionId) return;
     addMessage({ sender: "user", text: userMessage });
@@ -59,7 +180,11 @@ const Sidebar: React.FC = () => {
       `http://localhost:8000/api/session/${sessionId}/explain/${conceptInput}`,
       {},
       `请你解释一下"${conceptInput}"这个概念。`,
-      (data) => addMessage({ sender: "ai", text: data.explanation })
+      (data) =>
+        addMessage({
+          sender: "ai",
+          text: (data as { explanation: string }).explanation,
+        })
     );
     setConceptInput("");
     setShowConceptInput(false);
@@ -96,7 +221,6 @@ const Sidebar: React.FC = () => {
 
   const handleStageTransition = async () => {
     if (!sessionId || isTransitioning) return;
-
     setIsTransitioning(true);
     try {
       const response = await fetch(
@@ -130,6 +254,20 @@ const Sidebar: React.FC = () => {
     }
   };
 
+  const handleCompleteLearning = async () => {
+    if (!sessionId || isTransitioning) return;
+    setIsTransitioning(true);
+    try {
+      await completeLearning();
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "完成学习时出错";
+      setError(errorMessage);
+    } finally {
+      setIsTransitioning(false);
+    }
+  };
+
   const handleRequestChallenge = async () => {
     if (!sessionId) return;
     setChallenge(null);
@@ -138,9 +276,7 @@ const Sidebar: React.FC = () => {
         `http://localhost:8000/api/session/${sessionId}/challenge`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         }
       );
       if (!response.ok) {
@@ -171,7 +307,6 @@ const Sidebar: React.FC = () => {
       ? learning_stages[currentStageIndex + 1]
       : null;
 
-  // 统一的Sidebar设计
   return (
     <Box
       w={sidebarCollapsed ? "60px" : "280px"}
@@ -184,189 +319,72 @@ const Sidebar: React.FC = () => {
       zIndex={2}
       transition="width 0.2s ease"
     >
-      {/* 可滚动的内容区域 */}
       <Box
         flex="1"
         overflowY="auto"
-        p={sidebarCollapsed ? 2 : 3}
+        overflowX="hidden" // Prevent horizontal scroll during transition
+        p={3}
         pb={2}
         css={{
-          // 隐藏滚动条但保持功能
-          "&::-webkit-scrollbar": {
-            display: "none",
-          },
-          scrollbarWidth: "none", // Firefox
-          msOverflowStyle: "none", // IE
+          "&::-webkit-scrollbar": { display: "none" },
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
         }}
       >
-        {sidebarCollapsed ? (
-          // 收起状态：所有按钮左对齐，类似Claude收起状态
-          <VStack gap={1} align="stretch" w="full">
-            {/* 展开按钮 - 改为大脑图标 */}
+        <VStack gap={1} align="stretch">
+          {/* Header */}
+          <Flex align="center" mb={1}>
+            {" "}
+            {/* Add margin bottom to create space */}
             <Button
-              w="full"
               h="40px"
               display="flex"
               alignItems="center"
-              justifyContent="flex-start"
-              pl={3}
+              justifyContent={sidebarCollapsed ? "center" : "flex-start"}
               borderRadius="6px"
               bg="transparent"
-              color="#2d2318"
-              _hover={{ bg: "rgba(61, 57, 41, 0.08)" }}
+              color="#73726c"
+              _hover={{ bg: "rgba(61, 57, 41, 0.08)", color: "#3d3d3a" }}
               _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
               onClick={toggleSidebar}
-              title="展开侧边栏"
-              transition="background-color 0.2s"
-              mb={2}
+              title={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
+              transition="background-color 0.2s, width 0.2s, padding 0.2s"
               border="none"
-              minW="auto"
               variant="ghost"
+              w={sidebarCollapsed ? "full" : "auto"}
+              px={sidebarCollapsed ? 0 : 3}
+              minW="auto"
             >
-              <Brain />
+              <PanelLeft />
             </Button>
-
-            {sessionId && (
-              <>
-                {/* 学习工具按钮 */}
-                <Button
-                  w="full"
-                  h="40px"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="flex-start"
-                  pl={3}
-                  borderRadius="6px"
-                  bg="transparent"
-                  color="#3d3929"
-                  _hover={{ bg: "rgba(61, 57, 41, 0.08)" }}
-                  _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
-                  onClick={() => setShowConceptInput(!showConceptInput)}
-                  title="解释概念"
-                  transition="background-color 0.2s"
-                  border="none"
-                  minW="auto"
-                  variant="ghost"
-                >
-                  <Album color="#73726c" />
-                </Button>
-
-                <Button
-                  w="full"
-                  h="40px"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="flex-start"
-                  pl={3}
-                  borderRadius="6px"
-                  bg="transparent"
-                  color="#3d3929"
-                  _hover={{ bg: "rgba(61, 57, 41, 0.08)" }}
-                  _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
-                  onClick={() => setShowHintInput(!showHintInput)}
-                  title="请求提示"
-                  transition="background-color 0.2s"
-                  border="none"
-                  minW="auto"
-                  variant="ghost"
-                >
-                  <MessageCircle color="#73726c" />
-                </Button>
-
-                <Button
-                  w="full"
-                  h="40px"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="flex-start"
-                  pl={3}
-                  borderRadius="6px"
-                  bg="transparent"
-                  color="#3d3929"
-                  _hover={{ bg: "rgba(61, 57, 41, 0.08)" }}
-                  _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
-                  onClick={handleRequestChallenge}
-                  title="接受挑战"
-                  transition="background-color 0.2s"
-                  border="none"
-                  minW="auto"
-                  variant="ghost"
-                >
-                  <Target color="#73726c" />
-                </Button>
-
-                {/* 代码编辑器按钮 - 只在实现阶段显示 */}
-                {currentStage === "implementation" && (
-                  <Button
-                    w="full"
-                    h="40px"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="flex-start"
-                    pl={3}
-                    borderRadius="6px"
-                    bg="transparent"
-                    color="#3d3929"
-                    _hover={{ bg: "rgba(61, 57, 41, 0.08)" }}
-                    _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
-                    onClick={toggleRightPanel}
-                    title="代码编辑器"
-                    transition="background-color 0.2s"
-                    border="none"
-                    minW="auto"
-                    variant="ghost"
-                  >
-                    <Code />
-                  </Button>
-                )}
-              </>
-            )}
-          </VStack>
-        ) : (
-          // 展开状态：显示完整内容，类似Claude
-          <VStack gap={2} align="stretch">
-            {/* 顶部：收起按钮和CodeCoach文案在一行 */}
-            <Flex align="center" mb={2}>
-              {/* 收起按钮 - 改为大脑图标 */}
-              <Button
-                w="40px"
-                h="40px"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                borderRadius="6px"
-                bg="transparent"
-                color="#2d2318"
-                _hover={{ bg: "rgba(61, 57, 41, 0.08)" }}
-                _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
-                onClick={toggleSidebar}
-                title="收起侧边栏"
-                transition="background-color 0.2s"
-                mr={2}
-                border="none"
-                minW="40px"
-                variant="ghost"
-              >
-                <Brain />
-              </Button>
-
-              {/* CodeCoach */}
+            <Box
+              flex={1}
+              as="button"
+              h="40px"
+              display="flex"
+              alignItems="center"
+              px={2}
+              borderRadius="6px"
+              bg="transparent"
+              onClick={() => resetSession()}
+              title="CodeCoach - 返回首页"
+              transition="background-color 0.2s, max-width 0.2s"
+              textAlign="left"
+              overflow="hidden"
+              maxW={sidebarCollapsed ? 0 : "200px"}
+            >
               <Box
-                as="button"
-                flex={1}
-                h="40px"
-                display="flex"
-                alignItems="center"
-                px={2}
-                borderRadius="6px"
-                bg="transparent"
-                onClick={() => resetSession()}
-                title="CodeCoach - 返回首页"
-                transition="background-color 0.2s"
-                textAlign="left"
+                opacity={!sidebarCollapsed && showText ? 1 : 0}
+                transform={
+                  !sidebarCollapsed && showText
+                    ? "translateX(0)"
+                    : "translateX(-10px)"
+                }
+                transition="opacity 0.2s ease-out, transform 0.2s ease-out"
+                whiteSpace="nowrap"
               >
                 <Text
-                  fontSize="18px"
+                  fontSize="20px"
                   fontWeight="600"
                   color="#3d3929"
                   fontFamily="Georgia, 'Times New Roman', Times, serif"
@@ -374,355 +392,283 @@ const Sidebar: React.FC = () => {
                   CodeCoach
                 </Text>
               </Box>
-            </Flex>
+            </Box>
+          </Flex>
 
+          {/* Tools */}
+          <SidebarButton
+            icon={<Album size={20} />}
+            text="解释概念"
+            onClick={() => setShowConceptInput(!showConceptInput)}
+            isCollapsed={sidebarCollapsed}
+            showText={showText}
+            title="解释概念"
+            disabled={!sessionId}
+          />
+          <SidebarButton
+            icon={<MessageCircle size={20} />}
+            text="请求提示"
+            onClick={() => setShowHintInput(!showHintInput)}
+            isCollapsed={sidebarCollapsed}
+            showText={showText}
+            title="请求提示"
+            disabled={!sessionId}
+          />
+          <SidebarButton
+            icon={<Target size={20} />}
+            text="接受挑战"
+            onClick={handleRequestChallenge}
+            isCollapsed={sidebarCollapsed}
+            showText={showText}
+            title="接受挑战"
+            disabled={!sessionId}
+          />
+          {sessionId && currentStage === "implementation" && (
+            <SidebarButton
+              icon={<Code size={20} />}
+              text="代码编辑器"
+              onClick={toggleRightPanel}
+              isCollapsed={sidebarCollapsed}
+              showText={showText}
+              title="代码编辑器"
+            />
+          )}
+
+          {/* Input fields */}
+          {!sidebarCollapsed && showConceptInput && (
+            <Box mt={2}>
+              <Input
+                placeholder="输入要解释的概念..."
+                value={conceptInput}
+                onChange={(e) => setConceptInput(e.target.value)}
+                size="sm"
+                mb={2}
+                bg="rgba(255, 255, 255, 0.95)"
+                border="1px solid rgba(61, 57, 41, 0.2)"
+                _focus={{
+                  borderColor: "#bd5d3a",
+                  boxShadow: "0 0 0 1px #bd5d3a",
+                }}
+              />
+              <Button
+                size="sm"
+                bg="#bd5d3a"
+                color="white"
+                onClick={handleExplainConcept}
+                disabled={!conceptInput.trim()}
+              >
+                解释
+              </Button>
+            </Box>
+          )}
+
+          {!sidebarCollapsed && showHintInput && (
+            <Box mt={2}>
+              <Input
+                placeholder="描述你遇到的问题..."
+                value={hintInput}
+                onChange={(e) => setHintInput(e.target.value)}
+                size="sm"
+                mb={2}
+                bg="rgba(255, 255, 255, 0.95)"
+                border="1px solid rgba(61, 57, 41, 0.2)"
+                _focus={{
+                  borderColor: "#bd5d3a",
+                  boxShadow: "0 0 0 1px #bd5d3a",
+                }}
+              />
+              <Button
+                size="sm"
+                bg="#bd5d3a"
+                color="white"
+                onClick={handleRequestHint}
+                disabled={!hintInput.trim()}
+              >
+                获取提示
+              </Button>
+            </Box>
+          )}
+
+          {/* Learning Progress & Welcome Message */}
+          <Box
+            opacity={!sidebarCollapsed && showText ? 1 : 0}
+            transform={
+              !sidebarCollapsed && showText
+                ? "translateY(0)"
+                : "translateY(-10px)"
+            }
+            maxH={!sidebarCollapsed && showText ? "1000px" : "0"}
+            overflow="hidden"
+            transition="opacity 0.2s ease-out, transform 0.2s ease-out, max-height 0.3s ease-in-out"
+            style={{
+              transitionDelay: !sidebarCollapsed && showText ? "0.1s" : "0s",
+            }}
+          >
             {sessionId ? (
-              // 有session时显示学习工具
-              <>
-                {/* 学习工具列表 - 类似Claude的按钮组，都左对齐 */}
-                <VStack gap={1} align="stretch">
-                  {/* 解释概念 */}
-                  <Box
-                    as="button"
-                    w="full"
-                    h="40px"
-                    display="flex"
-                    alignItems="center"
-                    px={3}
-                    borderRadius="6px"
-                    bg="transparent"
-                    color="#3d3929"
-                    _hover={{ bg: "rgba(61, 57, 41, 0.08)" }}
-                    _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
-                    onClick={() => setShowConceptInput(!showConceptInput)}
-                    transition="background-color 0.2s"
-                    textAlign="left"
-                  >
-                    <Album
-                      size={20}
-                      color="#73726c"
-                      style={{ marginRight: "12px" }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = "#3d3d3a")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = "#73726c")
-                      }
-                    />
-                    <Text
-                      fontSize="14px"
-                      fontWeight="500"
-                      fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
-                    >
-                      解释概念
-                    </Text>
-                  </Box>
-
-                  {/* 请求提示 */}
-                  <Box
-                    as="button"
-                    w="full"
-                    h="40px"
-                    display="flex"
-                    alignItems="center"
-                    px={3}
-                    borderRadius="6px"
-                    bg="transparent"
-                    color="#3d3929"
-                    _hover={{ bg: "rgba(61, 57, 41, 0.08)" }}
-                    _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
-                    onClick={() => setShowHintInput(!showHintInput)}
-                    transition="background-color 0.2s"
-                    textAlign="left"
-                  >
-                    <MessageCircle
-                      size={20}
-                      color="#73726c"
-                      style={{ marginRight: "12px" }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = "#3d3d3a")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = "#73726c")
-                      }
-                    />
-                    <Text
-                      fontSize="14px"
-                      fontWeight="500"
-                      fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
-                    >
-                      请求提示
-                    </Text>
-                  </Box>
-
-                  {/* 接受挑战 */}
-                  <Box
-                    as="button"
-                    w="full"
-                    h="40px"
-                    display="flex"
-                    alignItems="center"
-                    px={3}
-                    borderRadius="6px"
-                    bg="transparent"
-                    color="#3d3929"
-                    _hover={{ bg: "rgba(61, 57, 41, 0.08)" }}
-                    _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
-                    onClick={handleRequestChallenge}
-                    transition="background-color 0.2s"
-                    textAlign="left"
-                  >
-                    <Target
-                      size={20}
-                      color="#73726c"
-                      style={{ marginRight: "12px" }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = "#3d3d3a")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = "#73726c")
-                      }
-                    />
-                    <Text
-                      fontSize="14px"
-                      fontWeight="500"
-                      fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
-                    >
-                      接受挑战
-                    </Text>
-                  </Box>
-
-                  {/* 代码编辑器 - 只在实现阶段显示 */}
-                  {currentStage === "implementation" && (
-                    <Box
-                      as="button"
-                      w="full"
-                      h="40px"
-                      display="flex"
-                      alignItems="center"
-                      px={3}
-                      borderRadius="6px"
-                      bg="transparent"
-                      color="#3d3929"
-                      _hover={{ bg: "rgba(61, 57, 41, 0.08)" }}
-                      _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
-                      onClick={toggleRightPanel}
-                      transition="background-color 0.2s"
-                      textAlign="left"
-                    >
-                      <Code
-                        color="#73726c"
-                        style={{ marginRight: "12px" }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.color = "#3d3d3a")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.color = "#73726c")
-                        }
-                      />
-                      <Text
-                        fontSize="14px"
-                        fontWeight="500"
-                        fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
-                      >
-                        代码编辑器
-                      </Text>
-                    </Box>
-                  )}
-                </VStack>
-
-                {/* 展开状态下的输入框 */}
-                {showConceptInput && (
-                  <Box mt={2}>
-                    <Input
-                      placeholder="输入要解释的概念..."
-                      value={conceptInput}
-                      onChange={(e) => setConceptInput(e.target.value)}
-                      size="sm"
-                      mb={2}
-                      bg="rgba(255, 255, 255, 0.95)"
-                      border="1px solid rgba(61, 57, 41, 0.2)"
-                      _focus={{
-                        borderColor: "#bd5d3a",
-                        boxShadow: "0 0 0 1px #bd5d3a",
-                      }}
-                    />
-                    <Button
-                      size="sm"
-                      bg="#bd5d3a"
-                      color="white"
-                      onClick={handleExplainConcept}
-                      disabled={!conceptInput.trim()}
-                    >
-                      解释
-                    </Button>
-                  </Box>
-                )}
-
-                {showHintInput && (
-                  <Box mt={2}>
-                    <Input
-                      placeholder="描述你遇到的问题..."
-                      value={hintInput}
-                      onChange={(e) => setHintInput(e.target.value)}
-                      size="sm"
-                      mb={2}
-                      bg="rgba(255, 255, 255, 0.95)"
-                      border="1px solid rgba(61, 57, 41, 0.2)"
-                      _focus={{
-                        borderColor: "#bd5d3a",
-                        boxShadow: "0 0 0 1px #bd5d3a",
-                      }}
-                    />
-                    <Button
-                      size="sm"
-                      bg="#bd5d3a"
-                      color="white"
-                      onClick={handleRequestHint}
-                      disabled={!hintInput.trim()}
-                    >
-                      获取提示
-                    </Button>
-                  </Box>
-                )}
-
-                {/* 学习进度 */}
-                <Box mt={6}>
+              <Box mt={6}>
+                <Text
+                  fontSize="14px"
+                  fontWeight="600"
+                  color="#3d3929"
+                  mb={4}
+                  fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+                >
+                  学习进度
+                </Text>
+                <Box
+                  p={4}
+                  bg="rgba(218, 119, 86, 0.05)"
+                  borderRadius="12px"
+                  border="1px solid rgba(218, 119, 86, 0.1)"
+                  mb={4}
+                >
                   <Text
-                    fontSize="14px"
+                    fontSize="13px"
                     fontWeight="600"
-                    color="#3d3929"
-                    mb={4}
+                    color="#da7756"
+                    mb={1}
                     fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
                   >
-                    学习进度
+                    当前阶段
                   </Text>
-                  <Box
-                    p={4}
-                    bg="rgba(218, 119, 86, 0.05)"
-                    borderRadius="12px"
-                    border="1px solid rgba(218, 119, 86, 0.1)"
-                    mb={4}
+                  <Text
+                    fontSize="15px"
+                    fontWeight="600"
+                    color="#3d3929"
+                    fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
                   >
-                    <Text
-                      fontSize="13px"
-                      fontWeight="600"
-                      color="#da7756"
-                      mb={1}
-                      fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
-                    >
-                      当前阶段
-                    </Text>
-                    <Text
-                      fontSize="15px"
-                      fontWeight="600"
-                      color="#3d3929"
-                      fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
-                    >
-                      {stageDisplayNames[currentStage]}
-                    </Text>
-                  </Box>
-
-                  <VStack gap={2} align="stretch">
-                    {learning_stages.map((stage, index) => {
-                      const isCompleted = index < currentStageIndex;
-                      const isCurrent = stage === currentStage;
-
-                      return (
-                        <Flex
-                          key={stage}
-                          align="center"
-                          p={2}
-                          borderRadius="8px"
+                    {stageDisplayNames[currentStage]}
+                  </Text>
+                </Box>
+                <VStack gap={2} align="stretch">
+                  {learning_stages.map((stage, index) => {
+                    const isCompleted = index < currentStageIndex;
+                    const isCurrent = stage === currentStage;
+                    return (
+                      <Flex key={stage} align="center" p={2} borderRadius="8px">
+                        <Box
+                          w="20px"
+                          h="20px"
+                          bg={
+                            isCompleted
+                              ? "#10b981"
+                              : isCurrent
+                              ? "#bd5d3a"
+                              : "rgba(61, 57, 41, 0.2)"
+                          }
+                          borderRadius="50%"
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                          mr={3}
                         >
-                          <Box
-                            w="20px"
-                            h="20px"
-                            bg={
-                              isCompleted
-                                ? "#10b981"
-                                : isCurrent
-                                ? "#bd5d3a"
-                                : "rgba(61, 57, 41, 0.2)"
-                            }
-                            borderRadius="50%"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            mr={3}
-                          >
-                            {isCompleted && (
-                              <Text fontSize="12px" color="white">
-                                ✓
-                              </Text>
-                            )}
-                            {isCurrent && (
-                              <Box
-                                w="8px"
-                                h="8px"
-                                bg="white"
-                                borderRadius="50%"
-                              />
-                            )}
-                          </Box>
-                          <Text
-                            fontSize="13px"
-                            color={
-                              isCompleted || isCurrent
-                                ? "#3d3929"
-                                : "rgba(61, 57, 41, 0.6)"
-                            }
-                            fontWeight={isCurrent ? "600" : "500"}
-                            fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
-                          >
-                            {stageDisplayNames[stage]}
-                          </Text>
-                        </Flex>
-                      );
-                    })}
-                  </VStack>
-
-                  {nextStage && (
+                          {isCompleted && <Check size={12} />}
+                          {isCurrent && (
+                            <Box
+                              w="8px"
+                              h="8px"
+                              bg="white"
+                              borderRadius="50%"
+                            />
+                          )}
+                        </Box>
+                        <Text
+                          fontSize="13px"
+                          color={
+                            isCompleted || isCurrent
+                              ? "#3d3929"
+                              : "rgba(61, 57, 41, 0.6)"
+                          }
+                          fontWeight={isCurrent ? "600" : "500"}
+                          fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+                        >
+                          {stageDisplayNames[stage]}
+                        </Text>
+                      </Flex>
+                    );
+                  })}
+                </VStack>
+                {nextStage ? (
+                  <Button
+                    mt={4}
+                    w="full"
+                    bg="#bd5d3a"
+                    color="white"
+                    _hover={{ bg: "#a04d2f" }}
+                    onClick={handleStageTransition}
+                    loading={isTransitioning}
+                    loadingText="切换中..."
+                    disabled={isTransitioning}
+                  >
+                    进入下一阶段 →
+                  </Button>
+                ) : (
+                  // 根据学习状态显示不同的按钮
+                  currentStage === "reflection" &&
+                  (learningCompleted ? (
+                    // 学习已完成，显示开始新问题按钮
                     <Button
                       mt={4}
                       w="full"
-                      bg="#bd5d3a"
+                      bg="#007bff"
                       color="white"
-                      _hover={{ bg: "#a04d2f" }}
-                      onClick={handleStageTransition}
-                      loading={isTransitioning}
-                      loadingText="切换中..."
+                      _hover={{ bg: "#0056b3" }}
+                      onClick={() => {
+                        resetSession();
+                      }}
                       disabled={isTransitioning}
                     >
-                      进入下一阶段 →
+                      🚀 开始新问题
                     </Button>
-                  )}
-                </Box>
-              </>
+                  ) : (
+                    // 学习未完成，显示完成学习按钮
+                    <Button
+                      mt={4}
+                      w="full"
+                      bg="#28a745"
+                      color="white"
+                      _hover={{ bg: "#218838" }}
+                      onClick={handleCompleteLearning}
+                      loading={isTransitioning}
+                      loadingText="完成中..."
+                      disabled={isTransitioning}
+                    >
+                      ✨ 完成学习
+                    </Button>
+                  ))
+                )}
+              </Box>
             ) : (
-              // 无session时显示简化内容
-              <Box>
-                <Text fontSize="14px" fontWeight="600" color="#3d3929" mb={4}>
+              <Box mt={4}>
+                <Text
+                  fontSize="14px"
+                  fontWeight="600"
+                  color="#3d3929"
+                  mb={4}
+                  fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+                >
                   开始学习
                 </Text>
                 <Text
                   fontSize="13px"
                   color="rgba(61, 57, 41, 0.7)"
                   lineHeight="1.5"
+                  fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
                 >
                   在右侧输入框中描述你想学习的编程概念，我将引导你通过结构化的方式深入理解。
                 </Text>
               </Box>
             )}
-          </VStack>
-        )}
+          </Box>
+        </VStack>
       </Box>
 
-      {/* 输入框：当收起状态下有输入需求时，显示为悬浮框 */}
+      {/* Floating input for collapsed state */}
       {sidebarCollapsed && (showConceptInput || showHintInput) && (
         <Box
+          ref={floatingBoxRef}
           position="absolute"
-          left="70px"
+          left="70px" // Position next to the collapsed sidebar
           top="80px"
           w="300px"
           bg="rgba(255, 255, 255, 0.98)"
@@ -735,7 +681,12 @@ const Sidebar: React.FC = () => {
         >
           {showConceptInput && (
             <VStack gap={3} align="stretch">
-              <Text fontSize="14px" fontWeight="600" color="#3d3929">
+              <Text
+                fontSize="14px"
+                fontWeight="600"
+                color="#3d3929"
+                fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+              >
                 解释概念
               </Text>
               <Input
@@ -745,6 +696,8 @@ const Sidebar: React.FC = () => {
                 size="sm"
                 bg="rgba(255, 255, 255, 0.95)"
                 border="1px solid rgba(61, 57, 41, 0.2)"
+                color="#3d3929"
+                _placeholder={{ color: "rgba(61, 57, 41, 0.6)" }}
                 _focus={{
                   borderColor: "#bd5d3a",
                   boxShadow: "0 0 0 1px #bd5d3a",
@@ -764,6 +717,18 @@ const Sidebar: React.FC = () => {
                 <Button
                   size="sm"
                   variant="outline"
+                  borderColor="#bd5d3a"
+                  color="#bd5d3a"
+                  bg="transparent"
+                  _hover={{
+                    bg: "rgba(189, 93, 58, 0.05)",
+                    borderColor: "#bd5d3a",
+                    color: "#bd5d3a",
+                  }}
+                  _active={{
+                    bg: "rgba(189, 93, 58, 0.1)",
+                    color: "#bd5d3a",
+                  }}
                   onClick={() => setShowConceptInput(false)}
                 >
                   取消
@@ -771,7 +736,6 @@ const Sidebar: React.FC = () => {
               </Flex>
             </VStack>
           )}
-
           {showHintInput && (
             <VStack gap={3} align="stretch">
               <Text fontSize="14px" fontWeight="600" color="#3d3929">
@@ -784,6 +748,8 @@ const Sidebar: React.FC = () => {
                 size="sm"
                 bg="rgba(255, 255, 255, 0.95)"
                 border="1px solid rgba(61, 57, 41, 0.2)"
+                color="#3d3929"
+                _placeholder={{ color: "rgba(61, 57, 41, 0.6)" }}
                 _focus={{
                   borderColor: "#bd5d3a",
                   boxShadow: "0 0 0 1px #bd5d3a",
@@ -803,6 +769,18 @@ const Sidebar: React.FC = () => {
                 <Button
                   size="sm"
                   variant="outline"
+                  borderColor="#bd5d3a"
+                  color="#bd5d3a"
+                  bg="transparent"
+                  _hover={{
+                    bg: "rgba(189, 93, 58, 0.05)",
+                    borderColor: "#bd5d3a",
+                    color: "#bd5d3a",
+                  }}
+                  _active={{
+                    bg: "rgba(189, 93, 58, 0.1)",
+                    color: "#bd5d3a",
+                  }}
                   onClick={() => setShowHintInput(false)}
                 >
                   取消
@@ -813,31 +791,37 @@ const Sidebar: React.FC = () => {
         </Box>
       )}
 
-      {/* 固定在底部的装饰 */}
-      <Box
-        px={sidebarCollapsed ? 2 : 3}
-        py={3}
-        borderTop="1px solid #e5e5e5"
-        bg="#f7f7f5"
-      >
-        {sidebarCollapsed ? (
-          // 收起状态：显示简化版本或隐藏
-          <Box w="100%" display="flex" justifyContent="center">
-            <Text
-              fontSize="10px"
-              color="#9ca3af"
-              textAlign="center"
-              whiteSpace="nowrap"
-            >
-              AI
-            </Text>
-          </Box>
-        ) : (
-          // 展开状态：显示完整文字
-          <Text fontSize="11px" color="#9ca3af" textAlign="center">
+      {/* Footer */}
+      <Box px={3} py={3} borderTop="1px solid #e5e5e5" bg="#f5f4ed">
+        <Box
+          w="full"
+          display="flex"
+          justifyContent="center"
+          overflow="hidden"
+          whiteSpace="nowrap"
+        >
+          <Text
+            fontSize="11px"
+            color="#9ca3af"
+            textAlign="center"
+            opacity={!sidebarCollapsed && showText ? 1 : 0}
+            transition="opacity 0.2s ease-out"
+            fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+          >
             Powered by AI
           </Text>
-        )}
+          <Text
+            fontSize="10px"
+            color="#9ca3af"
+            textAlign="center"
+            position="absolute"
+            opacity={sidebarCollapsed ? 1 : 0}
+            transition="opacity 0.2s ease-out"
+            fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+          >
+            AI
+          </Text>
+        </Box>
       </Box>
     </Box>
   );

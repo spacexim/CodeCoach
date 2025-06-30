@@ -39,6 +39,7 @@ interface AppState {
   isInitializing: boolean; // 新增：从提交到AI首次响应的过渡状态
   error: string | null;
   challenge: Challenge | null;
+  learningCompleted: boolean; // 新增：标记学习是否已完成
   sidebarCollapsed: boolean; // 新增：侧边栏收起状态
   rightPanelCollapsed: boolean; // 新增：右侧面板收起状态
 
@@ -66,6 +67,7 @@ interface AppState {
   toggleSidebar: () => void; // 新增：切换侧边栏状态
   toggleRightPanel: () => void; // 新增：切换右侧面板状态
   getCodeFeedback: (code: string) => Promise<void>; // 新增：获取代码反馈
+  completeLearning: () => Promise<void>; // 新增：完成学习
   resetSession: () => void;
 }
 
@@ -82,6 +84,7 @@ export const useAppStore = create<AppState>((set) => ({
   isInitializing: false, // 新增初始状态
   error: null,
   challenge: null,
+  learningCompleted: false, // 新增：初始为未完成
   sidebarCollapsed: false, // 新增：侧边栏初始为展开状态
   rightPanelCollapsed: false, // 修改：右侧面板初始为展开状态
 
@@ -205,6 +208,55 @@ export const useAppStore = create<AppState>((set) => ({
     }
   },
 
+  completeLearning: async () => {
+    const state = useAppStore.getState();
+    if (!state.sessionId) {
+      set({ error: "会话未找到，请重新开始" });
+      return;
+    }
+
+    try {
+      set({ isStreaming: true, error: null });
+
+      const response = await fetch(
+        `http://localhost:8000/api/session/${state.sessionId}/complete`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        // 添加学习总结消息
+        const summaryMessage: Message = {
+          sender: "ai",
+          text: data.summary,
+        };
+        set((state) => ({
+          messages: [...state.messages, summaryMessage],
+          isStreaming: false,
+          learningCompleted: true, // 标记学习已完成
+        }));
+      } else {
+        throw new Error(data.message || "完成学习失败");
+      }
+    } catch (error) {
+      console.error("完成学习时出错:", error);
+      set({
+        error: error instanceof Error ? error.message : "完成学习时出错",
+        isStreaming: false,
+      });
+    }
+  },
+
   resetSession: () =>
     set({
       sessionId: null,
@@ -217,6 +269,7 @@ export const useAppStore = create<AppState>((set) => ({
       isInitializing: false, // 新增重置状态
       error: null,
       challenge: null,
+      learningCompleted: false, // 重置学习状态
       sidebarCollapsed: false, // 重置侧边栏状态
       rightPanelCollapsed: false, // 修改：重置右侧面板为展开状态
     }),
