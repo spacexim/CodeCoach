@@ -25,29 +25,29 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
       >
         {!isUser && (
           <Box
-            w="32px"
-            h="32px"
-            bg="linear-gradient(135deg, #ff6b35, #f7931e)"
+            w="28px"
+            h="28px"
+            bg="#FF6B35"
             borderRadius="full"
             display="flex"
             alignItems="center"
             justifyContent="center"
             flexShrink={0}
-            boxShadow="0 2px 8px rgba(255, 107, 53, 0.3)"
+            fontSize="14px"
+            color="white"
+            fontWeight="600"
           >
-            <Text fontSize="16px" color="white">
-              🧠
-            </Text>
+            C
           </Box>
         )}
 
-        <VStack align={isUser ? "flex-end" : "flex-start"} gap={1} maxW="85%">
-          <Text fontSize="12px" color="#64748b" fontWeight="500" mb={1}>
-            {isUser ? "You" : "CodeCoach"}
+        <VStack align={isUser ? "flex-end" : "flex-start"} gap={1} maxW="80%">
+          <Text fontSize="12px" color="#6B7280" fontWeight="500" mb={1}>
+            {isUser ? "You" : "Claude"}
           </Text>
 
           <Box
-            bg={isUser ? "#ff6b35" : "rgba(255, 255, 255, 0.95)"}
+            bg={isUser ? "#FF6B35" : "#FFFFFF"}
             color={isUser ? "white" : "#1e293b"}
             px={4}
             py={3}

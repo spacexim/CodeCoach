@@ -21,12 +21,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
     <Box position="relative" maxW="800px" mx="auto" w="full">
       <Box
         position="relative"
-        border="2px solid"
-        borderColor="#e2e8f0"
+        border="1px solid"
+        borderColor="#E5E7EB"
         borderRadius="12px"
         bg="white"
+        boxShadow="0 1px 3px rgba(0, 0, 0, 0.05)"
         _focusWithin={{
-          borderColor: "#ff6b35",
+          borderColor: "#FF6B35",
           boxShadow: "0 0 0 3px rgba(255, 107, 53, 0.1)",
         }}
       >
@@ -44,10 +45,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
           resize="none"
           outline="none"
           bg="transparent"
-          color="#1e293b" // 设置文字颜色为深灰色
+          color="#1F2937"
           disabled={isStreaming}
           _placeholder={{
-            color: "#9ca3af",
+            color: isStreaming ? "#FF6B35" : "#9CA3AF",
           }}
           _focus={{
             outline: "none",

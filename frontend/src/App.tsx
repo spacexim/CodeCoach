@@ -6,6 +6,14 @@ import ChatInput from "./components/ChatInput";
 import RightPanel from "./components/RightPanel";
 import ChallengeModal from "./components/ChallengeModal";
 import {
+  PenTool,
+  BookOpen,
+  Code,
+  Dices,
+  GraduationCap,
+  Pencil,
+} from "lucide-react";
+import {
   Box,
   Flex,
   Text,
@@ -135,12 +143,7 @@ function App() {
 
   if (!sessionId) {
     return (
-      <Box
-        minH="100vh"
-        bg="linear-gradient(135deg, #fefefe 0%, #f8fafc 50%, #fafafa 100%)"
-        position="relative"
-        overflow="hidden"
-      >
+      <Box minH="100vh" bg="#F7F7F5" position="relative" overflow="hidden">
         {/* 更精致的背景装饰 */}
         <Box
           position="absolute"
@@ -201,71 +204,66 @@ function App() {
               px={4}
             >
               <Box mb={8}>
+                <Flex align="center" justify="center" mb={4}>
+                  <Text fontSize="48px" color="#FF6B35" mr={3}>
+                    ✱
+                  </Text>
+                  <Text
+                    fontSize={{ base: "28px", md: "36px", lg: "40px" }}
+                    fontWeight="400"
+                    color="#374151"
+                    letterSpacing="-0.02em"
+                    lineHeight="1.2"
+                    fontFamily="system-ui, -apple-system, sans-serif"
+                  >
+                    Hello, I'm your CodeCoach.
+                  </Text>
+                </Flex>
                 <Text
-                  fontSize={{ base: "36px", md: "52px", lg: "64px" }}
-                  fontWeight="200"
-                  color="#0f172a"
-                  mb={4}
-                  letterSpacing="-0.03em"
-                  lineHeight="0.95"
-                  fontFamily="system-ui, -apple-system, 'Segoe UI', 'SF Pro Display', sans-serif"
-                  position="relative"
-                  _after={{
-                    content: '""',
-                    position: "absolute",
-                    bottom: "-8px",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    w: "60px",
-                    h: "2px",
-                    bg: "linear-gradient(90deg, transparent, #f97316, transparent)",
-                    borderRadius: "full",
-                  }}
-                >
-                  Good evening, 学习者
-                </Text>
-                <Text
-                  fontSize="24px"
-                  color="#374151"
-                  mb={16}
+                  fontSize="16px"
+                  color="#6B7280"
+                  textAlign="center"
                   fontWeight="400"
-                  letterSpacing="-0.02em"
-                  lineHeight="1.4"
+                  lineHeight="1.5"
                 >
                   How can I help you today?
                 </Text>
               </Box>
 
-              {/* 输入框 */}
-              <Box position="relative" maxW="800px" mx="auto" mb={12}>
+              {/* Claude风格输入框 */}
+              <Box position="relative" maxW="1000px" mx="auto" mb={8}>
                 <Box
                   position="relative"
-                  border="2px solid"
-                  borderColor="#e2e8f0"
+                  border="1px solid #E5E7EB"
                   borderRadius="12px"
                   bg="white"
-                  _focusWithin={{
-                    borderColor: "#ff6b35",
-                    boxShadow: "0 0 0 3px rgba(255, 107, 53, 0.1)",
+                  boxShadow="0 1px 2px 0 rgba(0, 0, 0, 0.05)"
+                  _hover={{
+                    borderColor: "#D1D5DB",
                   }}
+                  _focusWithin={{
+                    borderColor: "#D1D5DB",
+                    boxShadow: "0 2px 4px 0 rgba(0, 0, 0, 0.1)",
+                  }}
+                  transition="all 0.2s ease-in-out"
                 >
-                  {/* 上方输入区域 */}
                   <Textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="今天想学什么编程概念？比如：如何实现一个栈？"
+                    placeholder="How can I help you today?"
                     w="100%"
-                    minH="120px"
+                    minH="100px"
                     p={4}
                     border="none"
-                    borderRadius="12px 12px 0 0"
+                    borderRadius="12px"
                     fontSize="16px"
                     resize="none"
                     outline="none"
                     bg="transparent"
-                    color="#1e293b"
+                    color="#374151"
+                    lineHeight="1.5"
                     _placeholder={{
-                      color: "#9ca3af",
+                      color: "#9CA3AF",
                     }}
                     _focus={{
                       outline: "none",
@@ -273,8 +271,14 @@ function App() {
                     }}
                   />
 
-                  {/* 底部一行：选择器 + 提交按钮 */}
-                  <Flex align="center" justify="space-between" p={3} pt={2}>
+                  {/* 底部控制栏 */}
+                  <Flex
+                    align="center"
+                    justify="space-between"
+                    px={3}
+                    py={2}
+                    borderTop="1px solid #F3F4F6"
+                  >
                     {/* 左侧选择器组 */}
                     <Flex gap={3} align="center">
                       <Select.Root
@@ -288,40 +292,29 @@ function App() {
                         <Select.Control>
                           <Select.Trigger
                             px={3}
-                            py={2}
+                            py={1.5}
                             minW="100px"
-                            border="1px solid #e2e8f0"
-                            borderRadius="8px"
-                            bg="white"
+                            border="none"
+                            borderRadius="6px"
+                            bg="transparent"
                             fontSize="14px"
-                            color="#475569"
+                            color="#6B7280"
                             fontWeight="500"
-                            transition="all 0.2s"
                             _hover={{
-                              borderColor: "#d1d5db",
-                              bg: "#fafafa",
-                            }}
-                            _focus={{
-                              borderColor: "#9ca3af",
-                              boxShadow: "0 0 0 1px rgba(156, 163, 175, 0.2)",
-                              outline: "none",
-                            }}
-                            _active={{
-                              borderColor: "#9ca3af",
-                              bg: "#fafafa",
+                              bg: "#F3F4F6",
+                              color: "#374151",
                             }}
                           >
-                            <Select.ValueText placeholder="选择语言" />
+                            <Select.ValueText />
                             <Select.Indicator />
                           </Select.Trigger>
                         </Select.Control>
                         <Select.Positioner>
                           <Select.Content
                             bg="white"
-                            border="1px solid #e2e8f0"
+                            border="1px solid #E5E7EB"
                             borderRadius="8px"
-                            boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
-                            minW="120px"
+                            boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1)"
                             zIndex={1000}
                           >
                             {languageOptions.items.map((item) => (
@@ -331,21 +324,7 @@ function App() {
                                 px={3}
                                 py={2}
                                 fontSize="14px"
-                                color="#374151"
-                                bg="white"
-                                _hover={{
-                                  bg: "#f8fafc",
-                                  color: "#1f2937",
-                                }}
-                                _focus={{
-                                  bg: "#f8fafc",
-                                  outline: "none",
-                                }}
-                                _selected={{
-                                  bg: "#f8fafc",
-                                  color: "#1f2937",
-                                  fontWeight: "500",
-                                }}
+                                _hover={{ bg: "#F3F4F6" }}
                               >
                                 <Select.ItemText>{item.label}</Select.ItemText>
                               </Select.Item>
@@ -365,40 +344,29 @@ function App() {
                         <Select.Control>
                           <Select.Trigger
                             px={3}
-                            py={2}
+                            py={1.5}
                             minW="80px"
-                            border="1px solid #e2e8f0"
-                            borderRadius="8px"
-                            bg="white"
+                            border="none"
+                            borderRadius="6px"
+                            bg="transparent"
                             fontSize="14px"
-                            color="#475569"
+                            color="#6B7280"
                             fontWeight="500"
-                            transition="all 0.2s"
                             _hover={{
-                              borderColor: "#d1d5db",
-                              bg: "#fafafa",
-                            }}
-                            _focus={{
-                              borderColor: "#9ca3af",
-                              boxShadow: "0 0 0 1px rgba(156, 163, 175, 0.2)",
-                              outline: "none",
-                            }}
-                            _active={{
-                              borderColor: "#9ca3af",
-                              bg: "#fafafa",
+                              bg: "#F3F4F6",
+                              color: "#374151",
                             }}
                           >
-                            <Select.ValueText placeholder="技能水平" />
+                            <Select.ValueText />
                             <Select.Indicator />
                           </Select.Trigger>
                         </Select.Control>
                         <Select.Positioner>
                           <Select.Content
                             bg="white"
-                            border="1px solid #e2e8f0"
+                            border="1px solid #E5E7EB"
                             borderRadius="8px"
-                            boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
-                            minW="100px"
+                            boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1)"
                             zIndex={1000}
                           >
                             {skillLevelOptions.items.map((item) => (
@@ -408,21 +376,7 @@ function App() {
                                 px={3}
                                 py={2}
                                 fontSize="14px"
-                                color="#374151"
-                                bg="white"
-                                _hover={{
-                                  bg: "#f8fafc",
-                                  color: "#1f2937",
-                                }}
-                                _focus={{
-                                  bg: "#f8fafc",
-                                  outline: "none",
-                                }}
-                                _selected={{
-                                  bg: "#f8fafc",
-                                  color: "#1f2937",
-                                  fontWeight: "500",
-                                }}
+                                _hover={{ bg: "#F3F4F6" }}
                               >
                                 <Select.ItemText>{item.label}</Select.ItemText>
                               </Select.Item>
@@ -430,7 +384,10 @@ function App() {
                           </Select.Content>
                         </Select.Positioner>
                       </Select.Root>
+                    </Flex>
 
+                    {/* 右侧模型选择和发送按钮 */}
+                    <Flex gap={3} align="center">
                       <Select.Root
                         collection={modelOptions}
                         value={[selectedModel]}
@@ -442,40 +399,29 @@ function App() {
                         <Select.Control>
                           <Select.Trigger
                             px={3}
-                            py={2}
-                            minW="160px"
-                            border="1px solid #e2e8f0"
-                            borderRadius="8px"
-                            bg="white"
+                            py={1.5}
+                            minW="140px"
+                            border="none"
+                            borderRadius="6px"
+                            bg="transparent"
                             fontSize="14px"
-                            color="#475569"
+                            color="#6B7280"
                             fontWeight="500"
-                            transition="all 0.2s"
                             _hover={{
-                              borderColor: "#d1d5db",
-                              bg: "#fafafa",
-                            }}
-                            _focus={{
-                              borderColor: "#9ca3af",
-                              boxShadow: "0 0 0 1px rgba(156, 163, 175, 0.2)",
-                              outline: "none",
-                            }}
-                            _active={{
-                              borderColor: "#9ca3af",
-                              bg: "#fafafa",
+                              bg: "#F3F4F6",
+                              color: "#374151",
                             }}
                           >
-                            <Select.ValueText placeholder="选择模型" />
+                            <Select.ValueText />
                             <Select.Indicator />
                           </Select.Trigger>
                         </Select.Control>
                         <Select.Positioner>
                           <Select.Content
                             bg="white"
-                            border="1px solid #e2e8f0"
+                            border="1px solid #E5E7EB"
                             borderRadius="8px"
-                            boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
-                            minW="180px"
+                            boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1)"
                             zIndex={1000}
                           >
                             {modelOptions.items.map((item) => (
@@ -485,21 +431,7 @@ function App() {
                                 px={3}
                                 py={2}
                                 fontSize="14px"
-                                color="#374151"
-                                bg="white"
-                                _hover={{
-                                  bg: "#f8fafc",
-                                  color: "#1f2937",
-                                }}
-                                _focus={{
-                                  bg: "#f8fafc",
-                                  outline: "none",
-                                }}
-                                _selected={{
-                                  bg: "#f8fafc",
-                                  color: "#1f2937",
-                                  fontWeight: "500",
-                                }}
+                                _hover={{ bg: "#F3F4F6" }}
                               >
                                 <Select.ItemText>{item.label}</Select.ItemText>
                               </Select.Item>
@@ -507,146 +439,114 @@ function App() {
                           </Select.Content>
                         </Select.Positioner>
                       </Select.Root>
+
+                      <Button
+                        w="32px"
+                        h="32px"
+                        bg={inputValue.trim() ? "#FF6B35" : "#E5E7EB"}
+                        color="white"
+                        borderRadius="6px"
+                        minW="32px"
+                        fontSize="16px"
+                        disabled={!inputValue.trim()}
+                        _hover={{
+                          bg: inputValue.trim() ? "#EA580C" : "#E5E7EB",
+                          transform: inputValue.trim()
+                            ? "translateY(-1px)"
+                            : "none",
+                        }}
+                        transition="all 0.2s"
+                        onClick={() => {
+                          if (inputValue.trim()) {
+                            const modelMapping = {
+                              "Claude 3.7 Sonnet":
+                                "anthropic/claude-3.7-sonnet",
+                              "GPT-4o": "openai/gpt-4o",
+                              "DeepSeek R1": "deepseek/deepseek-r1:free",
+                            };
+
+                            handleStartSession(
+                              inputValue,
+                              language,
+                              skillLevel === "中级"
+                                ? "intermediate"
+                                : skillLevel === "初学者"
+                                ? "beginner"
+                                : "advanced",
+                              modelMapping[
+                                selectedModel as keyof typeof modelMapping
+                              ] || "anthropic/claude-3.7-sonnet"
+                            );
+                          }
+                        }}
+                      >
+                        ↗
+                      </Button>
                     </Flex>
-
-                    {/* 右侧提交按钮 */}
-                    <Button
-                      w="40px"
-                      h="40px"
-                      bg={inputValue.trim() ? "#ff6b35" : "#e5e7eb"}
-                      color="white"
-                      borderRadius="8px"
-                      minW="40px"
-                      fontSize="18px"
-                      disabled={!inputValue.trim()}
-                      _hover={{
-                        bg: inputValue.trim() ? "#e55a2e" : "#e5e7eb",
-                        transform: inputValue.trim() ? "scale(1.05)" : "none",
-                      }}
-                      onClick={() => {
-                        if (inputValue.trim()) {
-                          // 模型映射
-                          const modelMapping = {
-                            "Claude 3.7 Sonnet": "anthropic/claude-3.7-sonnet",
-                            "GPT-4o": "openai/gpt-4o",
-                            "DeepSeek R1": "deepseek/deepseek-r1:free",
-                          };
-
-                          handleStartSession(
-                            inputValue,
-                            language,
-                            skillLevel === "中级"
-                              ? "intermediate"
-                              : skillLevel === "初学者"
-                              ? "beginner"
-                              : "advanced",
-                            modelMapping[
-                              selectedModel as keyof typeof modelMapping
-                            ] || "anthropic/claude-3.7-sonnet"
-                          );
-                        }
-                      }}
-                    >
-                      ↗
-                    </Button>
                   </Flex>
                 </Box>
               </Box>
 
-              {/* 更精致的功能按钮 */}
+              {/* Claude风格功能按钮 */}
               <Box
                 display="flex"
-                gap={4}
+                gap={3}
                 justifyContent="center"
                 flexWrap="wrap"
-                mb={8}
+                maxW="600px"
+                mx="auto"
               >
                 {[
                   {
-                    icon: "✍️",
+                    icon: Pencil,
                     text: "Write",
-                    desc: "创作内容",
-                    color: "#f59e0b",
                     prompt: "我想学习如何编写清晰的代码注释和文档",
                   },
                   {
-                    icon: "🧠",
+                    icon: GraduationCap,
                     text: "Learn",
-                    desc: "学习概念",
-                    color: "#ec4899",
                     prompt: "请教我数据结构中栈的基本概念和实现",
                   },
                   {
-                    icon: "💻",
+                    icon: Code,
                     text: "Code",
-                    desc: "编程实践",
-                    color: "#3b82f6",
                     prompt: "我想练习实现一个简单的排序算法",
                   },
                   {
-                    icon: "🎯",
-                    text: "Practice",
-                    desc: "刷题练习",
-                    color: "#10b981",
-                    prompt: "给我一个中等难度的算法练习题",
-                  },
-                  {
-                    icon: "🎲",
-                    text: "Surprise me",
-                    desc: "随机挑战",
-                    color: "#8b5cf6",
-                    prompt: "给我一个随机的编程挑战",
+                    icon: Dices,
+                    text: "Challenge",
+                    prompt: "给我一个适合我水平的编程挑战",
                   },
                 ].map((item, index) => (
                   <Button
                     key={index}
-                    variant="ghost"
+                    variant="outline"
                     size="md"
-                    px={6}
-                    py={4}
+                    px={4}
+                    py={3}
                     h="auto"
-                    bg="rgba(255, 255, 255, 0.9)"
-                    backdropFilter="blur(20px)"
-                    border="1px solid #e2e8f0"
-                    borderRadius="16px"
-                    color="#475569"
-                    fontWeight="600"
-                    fontSize="15px"
-                    boxShadow="0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)"
-                    transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                    position="relative"
-                    overflow="hidden"
-                    _before={{
-                      content: '""',
-                      position: "absolute",
-                      inset: 0,
-                      bg: `linear-gradient(135deg, ${item.color}20, ${item.color}10)`,
-                      opacity: 0,
-                      transition: "opacity 0.3s ease",
-                    }}
+                    bg="rgba(255, 255, 255, 0.1)"
+                    border="1.5px solid rgba(229, 231, 235, 0.5)"
+                    borderRadius="8px"
+                    color="#374151"
+                    fontSize="14px"
+                    fontWeight="500"
+                    backdropFilter="blur(10px)"
                     _hover={{
-                      bg: "rgba(255, 255, 255, 0.95)",
-                      borderColor: item.color,
-                      color: item.color,
-                      transform: "translateY(-2px)",
-                      boxShadow: `0 8px 32px ${item.color}20, 0 4px 16px rgba(0, 0, 0, 0.1)`,
-                      _before: {
-                        opacity: 1,
-                      },
-                    }}
-                    _active={{
+                      bg: "rgba(255, 255, 255, 0.2)",
+                      borderColor: "rgba(209, 213, 219, 0.7)",
                       transform: "translateY(-1px)",
+                      boxShadow: "0 2px 4px -1px rgba(0, 0, 0, 0.1)",
                     }}
+                    transition="all 0.2s"
                     onClick={() => {
                       setInputValue(item.prompt);
                     }}
                   >
-                    <Text fontSize="18px" mr={3}>
-                      {item.icon}
-                    </Text>
-                    <Text fontSize="15px" fontWeight="600">
-                      {item.text}
-                    </Text>
+                    <Flex align="center" gap={2}>
+                      <item.icon size={16} color="#6B7280" />
+                      <Text>{item.text}</Text>
+                    </Flex>
                   </Button>
                 ))}
               </Box>
@@ -672,12 +572,7 @@ function App() {
   }
 
   return (
-    <Box
-      minH="100vh"
-      bg="linear-gradient(135deg, #fefefe 0%, #f8fafc 50%, #fafafa 100%)"
-      position="relative"
-      overflow="hidden"
-    >
+    <Box minH="100vh" bg="#F7F7F5" position="relative" overflow="hidden">
       {/* 背景装饰 - 与无session时保持一致 */}
       <Box
         position="absolute"

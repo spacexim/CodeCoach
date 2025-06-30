@@ -69,7 +69,7 @@ const ChatWindow: React.FC = () => {
 
   return (
     <>
-      {/* 顶部加载进度条 */}
+      {/* 顶部加载进度条 - Claude风格 */}
       {isStreaming && !isInitializing && (
         <Box
           position="absolute"
@@ -77,28 +77,28 @@ const ChatWindow: React.FC = () => {
           left={0}
           right={0}
           h="3px"
-          bg="rgba(255, 107, 53, 0.2)"
+          bg="rgba(255, 107, 53, 0.15)"
           zIndex={10}
           overflow="hidden"
         >
           <Box
             h="100%"
             w="100%"
-            bg="#ff6b35"
-            animation="pulse 1.5s ease-in-out infinite"
+            bg="#FF6B35"
+            animation="claudePulse 1.8s ease-in-out infinite"
             css={{
-              "@keyframes pulse": {
+              "@keyframes claudePulse": {
                 "0%": {
-                  opacity: 0.4,
-                  transform: "scaleX(0.8)",
+                  opacity: 0.5,
+                  transform: "scaleX(0.85)",
                 },
                 "50%": {
                   opacity: 1,
                   transform: "scaleX(1)",
                 },
                 "100%": {
-                  opacity: 0.4,
-                  transform: "scaleX(0.8)",
+                  opacity: 0.5,
+                  transform: "scaleX(0.85)",
                 },
               },
             }}

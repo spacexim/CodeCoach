@@ -170,19 +170,19 @@ const Sidebar: React.FC = () => {
       ? learning_stages[currentStageIndex + 1]
       : null;
 
-  // 统一的Sidebar设计 - Claude浅色风格，支持收起/展开
+  // 统一的Sidebar设计 - Claude风格
   return (
     <Box
-      w={sidebarCollapsed ? "60px" : "300px"}
+      w={sidebarCollapsed ? "60px" : "280px"}
       h="100vh"
-      bg="rgba(255, 255, 255, 0.95)"
-      backdropFilter="blur(20px)"
-      borderRight="1px solid rgba(226, 232, 240, 0.8)"
+      bg="#FFFFFF"
+      borderRight="1px solid #E5E7EB"
       display="flex"
       flexDirection="column"
       position="relative"
       zIndex={2}
       transition="width 0.3s ease"
+      boxShadow="0 1px 3px rgba(0, 0, 0, 0.05)"
     >
       {/* 可滚动的内容区域 */}
       <Box
@@ -208,9 +208,9 @@ const Sidebar: React.FC = () => {
               w="40px"
               h="40px"
               borderRadius="8px"
-              bg="rgba(249, 115, 22, 0.1)"
-              color="#f97316"
-              _hover={{ bg: "rgba(249, 115, 22, 0.15)" }}
+              bg="#FF6B35"
+              color="white"
+              _hover={{ bg: "#EA580C" }}
               _focus={{ boxShadow: "none", outline: "none" }}
               onClick={toggleSidebar}
               title="展开侧边栏"

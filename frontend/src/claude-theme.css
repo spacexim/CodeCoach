@@ -1,0 +1,180 @@
+/* Claude风格全局样式 */
+:root {
+  /* Claude主色调 */
+  --claude-primary: #ff6b35;
+  --claude-primary-hover: #ea580c;
+  --claude-primary-light: #fff8f1;
+  --claude-primary-lighter: #feecdc;
+
+  /* 背景色系 - 更接近Claude的米白色调 */
+  --claude-bg-primary: #f7f7f5;
+  --claude-bg-secondary: #ffffff;
+  --claude-bg-tertiary: #f5f5f5;
+
+  /* 文字色系 */
+  --claude-text-primary: #1f2937;
+  --claude-text-secondary: #6b7280;
+  --claude-text-muted: #9ca3af;
+
+  /* 边框色系 */
+  --claude-border-light: #e5e7eb;
+  --claude-border-medium: #d1d5db;
+  --claude-border-dark: #9ca3af;
+
+  /* 阴影 */
+  --claude-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --claude-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --claude-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --claude-shadow-primary: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* 全局样式调整 */
+body {
+  background-color: var(--claude-bg-primary) !important;
+  color: var(--claude-text-primary) !important;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+/* 覆盖Chakra UI的默认样式 */
+.chakra-text {
+  color: var(--claude-text-primary) !important;
+}
+
+.chakra-button {
+  font-family: system-ui, -apple-system, sans-serif !important;
+}
+
+/* Claude风格按钮类 */
+.claude-btn {
+  background-color: var(--claude-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.claude-btn:hover {
+  background-color: var(--claude-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--claude-shadow-primary);
+}
+
+.claude-btn:disabled {
+  background-color: var(--claude-border-medium);
+  color: var(--claude-text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.claude-btn-outline {
+  background-color: transparent;
+  color: var(--claude-primary);
+  border: 1px solid var(--claude-primary);
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.claude-btn-outline:hover {
+  background-color: var(--claude-primary-light);
+  border-color: var(--claude-primary-hover);
+}
+
+/* Claude风格输入框 */
+.claude-input {
+  border: 1px solid var(--claude-border-light);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background-color: var(--claude-bg-secondary);
+  color: var(--claude-text-primary);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.claude-input:focus {
+  outline: none;
+  border-color: var(--claude-primary);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.claude-input::placeholder {
+  color: var(--claude-text-muted);
+}
+
+/* Claude风格卡片 */
+.claude-card {
+  background-color: var(--claude-bg-secondary);
+  border: 1px solid var(--claude-border-light);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--claude-shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.claude-card:hover {
+  box-shadow: var(--claude-shadow-md);
+  border-color: var(--claude-border-medium);
+}
+
+/* 滚动条样式 */
+.claude-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.claude-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.claude-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--claude-border-medium);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.claude-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--claude-border-dark);
+}
+
+/* 隐藏滚动条但保持功能 */
+.claude-scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.claude-scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* 悬停时显示滚动条 */
+.claude-scrollbar-auto::-webkit-scrollbar {
+  width: 6px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.claude-scrollbar-auto:hover::-webkit-scrollbar {
+  opacity: 1;
+}
+
+.claude-scrollbar-auto::-webkit-scrollbar-thumb {
+  background: var(--claude-border-medium);
+  border-radius: 3px;
+}
+
+.claude-scrollbar-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
