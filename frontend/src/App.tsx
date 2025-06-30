@@ -3,7 +3,7 @@ import { useAppStore } from "./store";
 import Sidebar from "./components/Sidebar";
 import ChatWindow from "./components/ChatWindow";
 import ChatInput from "./components/ChatInput";
-import CodeImplementation from "./components/CodeImplementation";
+import RightPanel from "./components/RightPanel";
 import ChallengeModal from "./components/ChallengeModal";
 import {
   Box,
@@ -17,7 +17,6 @@ import {
 
 function App() {
   const sessionId = useAppStore((state) => state.sessionId);
-  const currentStage = useAppStore((state) => state.currentStage);
   const {
     setSession,
     setSessionInfo,
@@ -726,7 +725,6 @@ function App() {
             overflow="hidden" // 防止整体溢出
           >
             <ChatWindow />
-            {currentStage === "implementation" && <CodeImplementation />}
           </Box>
 
           <Box
@@ -743,6 +741,7 @@ function App() {
             </Box>
           </Box>
         </Flex>
+        <RightPanel />
       </Flex>
 
       {/* CSS动画 */}

@@ -2,6 +2,8 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Box, Code, Heading, Text, Link } from "@chakra-ui/react";
 
 interface MarkdownRendererProps {
@@ -18,7 +20,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         p: ({ ...props }) => <Text mb={2} {...props} />,
         a: ({ ...props }) => (
           <Link
-            color="teal.300"
+            color="blue.500"
             target="_blank"
             rel="noopener noreferrer"
             {...props}
@@ -27,24 +29,51 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         code({ className, children, ...props }: any) {
           const match = /language-(\w+)/.exec(className || "");
+          const language = match ? match[1] : "";
           const isInline = !match;
-          return !isInline ? (
+
+          if (isInline) {
+            return (
+              <Code
+                bg="gray.100"
+                color="gray.800"
+                fontSize="0.9em"
+                px={1}
+                py={0.5}
+                borderRadius="md"
+                {...props}
+              >
+                {children}
+              </Code>
+            );
+          }
+
+          return (
             <Box
-              as="pre"
-              p={4}
-              bg="gray.700"
+              bg="gray.50"
               borderRadius="md"
               my={4}
-              overflowX="auto"
+              border="1px solid"
+              borderColor="gray.200"
+              overflow="hidden"
             >
-              <Code className={className} {...props}>
+              <SyntaxHighlighter
+                language={language}
+                style={oneLight}
+                customStyle={{
+                  margin: 0,
+                  padding: "16px",
+                  fontSize: "14px",
+                  lineHeight: "1.4",
+                  fontFamily:
+                    "'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace",
+                  background: "transparent",
+                }}
+                {...props}
+              >
                 {String(children).replace(/\n$/, "")}
-              </Code>
+              </SyntaxHighlighter>
             </Box>
-          ) : (
-            <Code colorScheme="purple" fontSize="0.9em" {...props}>
-              {children}
-            </Code>
           );
         },
       }}

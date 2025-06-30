@@ -53,6 +53,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             py={3}
             borderRadius="16px"
             maxW="100%"
+            minH="44px" // 添加最小高度，防止抖动
             boxShadow={
               isUser
                 ? "0 2px 8px rgba(255, 107, 53, 0.2)"
@@ -61,6 +62,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             border={isUser ? "none" : "1px solid rgba(226, 232, 240, 0.6)"}
             backdropFilter={isUser ? "none" : "blur(10px)"}
             position="relative"
+            transition="none" // 禁用过渡动画，减少抖动
             _before={
               isUser
                 ? {}
@@ -104,7 +106,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                 {message.text}
               </Text>
             ) : (
-              <Box fontSize="15px" lineHeight="1.6">
+              <Box
+                fontSize="15px"
+                lineHeight="1.6"
+                minH="20px" // 为AI消息添加最小高度
+                wordBreak="break-word" // 确保长单词正确换行
+              >
                 <MarkdownRenderer content={message.text} />
               </Box>
             )}

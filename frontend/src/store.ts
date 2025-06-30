@@ -39,6 +39,8 @@ interface AppState {
   isInitializing: boolean; // 新增：从提交到AI首次响应的过渡状态
   error: string | null;
   challenge: Challenge | null;
+  sidebarCollapsed: boolean; // 新增：侧边栏收起状态
+  rightPanelCollapsed: boolean; // 新增：右侧面板收起状态
 
   // 修改状态的函数 (Actions)
   setSession: (sessionData: {
@@ -61,6 +63,9 @@ interface AppState {
   setCurrentStage: (stage: Stage) => void;
   setError: (error: string | null) => void;
   setChallenge: (challenge: Challenge | null) => void;
+  toggleSidebar: () => void; // 新增：切换侧边栏状态
+  toggleRightPanel: () => void; // 新增：切换右侧面板状态
+  getCodeFeedback: (code: string) => Promise<void>; // 新增：获取代码反馈
   resetSession: () => void;
 }
 
@@ -77,6 +82,8 @@ export const useAppStore = create<AppState>((set) => ({
   isInitializing: false, // 新增初始状态
   error: null,
   challenge: null,
+  sidebarCollapsed: false, // 新增：侧边栏初始为展开状态
+  rightPanelCollapsed: false, // 修改：右侧面板初始为展开状态
 
   // Actions 的具体实现
   setSession: ({ sessionId, initialMessage, problem, language, skillLevel }) =>
@@ -132,6 +139,72 @@ export const useAppStore = create<AppState>((set) => ({
 
   setChallenge: (challenge) => set({ challenge }),
 
+  toggleSidebar: () =>
+    set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })), // 新增
+
+  toggleRightPanel: () =>
+    set((state) => ({ rightPanelCollapsed: !state.rightPanelCollapsed })), // 新增
+
+  getCodeFeedback: async (code: string) => {
+    const state = useAppStore.getState();
+    if (!state.sessionId) {
+      set({ error: "会话未找到，请重新开始" });
+      return;
+    }
+
+    try {
+      set({ isStreaming: true, error: null });
+
+      // 先在聊天窗口显示用户提交的代码
+      const userMessage: Message = {
+        sender: "user",
+        text: `我已经完成了代码，请给我一些反馈：\n\`\`\`${state.language.toLowerCase()}\n${code}\n\`\`\``,
+      };
+      set((state) => ({
+        messages: [...state.messages, userMessage],
+      }));
+
+      const response = await fetch(
+        `http://localhost:8000/api/session/${state.sessionId}/feedback`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            code: code,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        // 添加AI反馈消息
+        const aiMessage: Message = {
+          sender: "ai",
+          text: data.feedback,
+        };
+        set((state) => ({
+          messages: [...state.messages, aiMessage],
+          isStreaming: false,
+        }));
+      } else {
+        throw new Error("获取代码反馈失败");
+      }
+    } catch (error) {
+      console.error("获取代码反馈时出错:", error);
+      set({
+        error: error instanceof Error ? error.message : "获取代码反馈时出错",
+        isStreaming: false,
+      });
+    }
+  },
+
   resetSession: () =>
     set({
       sessionId: null,
@@ -144,5 +217,7 @@ export const useAppStore = create<AppState>((set) => ({
       isInitializing: false, // 新增重置状态
       error: null,
       challenge: null,
+      sidebarCollapsed: false, // 重置侧边栏状态
+      rightPanelCollapsed: false, // 修改：重置右侧面板为展开状态
     }),
 }));
