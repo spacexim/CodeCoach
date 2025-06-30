@@ -143,7 +143,7 @@ function App() {
 
   if (!sessionId) {
     return (
-      <Box minH="100vh" bg="#F7F7F5" position="relative" overflow="hidden">
+      <Box minH="100vh" bg="#faf9f5" position="relative" overflow="hidden">
         {/* 更精致的背景装饰 */}
         <Box
           position="absolute"
@@ -205,26 +205,28 @@ function App() {
             >
               <Box mb={8}>
                 <Flex align="center" justify="center" mb={4}>
-                  <Text fontSize="48px" color="#FF6B35" mr={3}>
+                  <Text fontSize="48px" color="#da7756" mr={3}>
                     ✱
                   </Text>
                   <Text
                     fontSize={{ base: "28px", md: "36px", lg: "40px" }}
                     fontWeight="400"
-                    color="#374151"
+                    color="#3d3929"
                     letterSpacing="-0.02em"
                     lineHeight="1.2"
-                    fontFamily="system-ui, -apple-system, sans-serif"
+                    fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                   >
                     Hello, I'm your CodeCoach.
                   </Text>
                 </Flex>
                 <Text
                   fontSize="16px"
-                  color="#6B7280"
+                  color="#3d3929"
                   textAlign="center"
                   fontWeight="400"
                   lineHeight="1.5"
+                  opacity="0.8"
+                  fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                 >
                   How can I help you today?
                 </Text>
@@ -234,16 +236,16 @@ function App() {
               <Box position="relative" maxW="1000px" mx="auto" mb={8}>
                 <Box
                   position="relative"
-                  border="1px solid #E5E7EB"
+                  border="1px solid rgba(61, 57, 41, 0.15)"
                   borderRadius="12px"
-                  bg="white"
-                  boxShadow="0 1px 2px 0 rgba(0, 0, 0, 0.05)"
+                  bg="rgba(255, 255, 255, 0.95)"
+                  boxShadow="0 1px 3px 0 rgba(61, 57, 41, 0.1)"
                   _hover={{
-                    borderColor: "#D1D5DB",
+                    borderColor: "rgba(61, 57, 41, 0.25)",
                   }}
                   _focusWithin={{
-                    borderColor: "#D1D5DB",
-                    boxShadow: "0 2px 4px 0 rgba(0, 0, 0, 0.1)",
+                    borderColor: "rgba(61, 57, 41, 0.25)",
+                    boxShadow: "0 2px 6px 0 rgba(61, 57, 41, 0.15)",
                   }}
                   transition="all 0.2s ease-in-out"
                 >
@@ -260,10 +262,12 @@ function App() {
                     resize="none"
                     outline="none"
                     bg="transparent"
-                    color="#374151"
+                    color="#3d3929"
                     lineHeight="1.5"
+                    fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+                    fontWeight="400"
                     _placeholder={{
-                      color: "#9CA3AF",
+                      color: "rgba(61, 57, 41, 0.6)",
                     }}
                     _focus={{
                       outline: "none",
@@ -277,7 +281,7 @@ function App() {
                     justify="space-between"
                     px={3}
                     py={2}
-                    borderTop="1px solid #F3F4F6"
+                    borderTop="1px solid rgba(61, 57, 41, 0.1)"
                   >
                     {/* 左侧选择器组 */}
                     <Flex gap={3} align="center">
@@ -298,11 +302,12 @@ function App() {
                             borderRadius="6px"
                             bg="transparent"
                             fontSize="14px"
-                            color="#6B7280"
+                            color="rgba(61, 57, 41, 0.7)"
                             fontWeight="500"
+                            fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                             _hover={{
-                              bg: "#F3F4F6",
-                              color: "#374151",
+                              bg: "rgba(61, 57, 41, 0.05)",
+                              color: "#3d3929",
                             }}
                           >
                             <Select.ValueText />
@@ -311,11 +316,12 @@ function App() {
                         </Select.Control>
                         <Select.Positioner>
                           <Select.Content
-                            bg="white"
-                            border="1px solid #E5E7EB"
+                            bg="rgba(255, 255, 255, 0.98)"
+                            border="1px solid rgba(61, 57, 41, 0.15)"
                             borderRadius="8px"
-                            boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                            boxShadow="0 4px 12px -2px rgba(61, 57, 41, 0.15)"
                             zIndex={1000}
+                            backdropFilter="blur(10px)"
                           >
                             {languageOptions.items.map((item) => (
                               <Select.Item
@@ -324,7 +330,9 @@ function App() {
                                 px={3}
                                 py={2}
                                 fontSize="14px"
-                                _hover={{ bg: "#F3F4F6" }}
+                                color="#3d3929"
+                                fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+                                _hover={{ bg: "rgba(61, 57, 41, 0.05)" }}
                               >
                                 <Select.ItemText>{item.label}</Select.ItemText>
                               </Select.Item>
@@ -350,11 +358,12 @@ function App() {
                             borderRadius="6px"
                             bg="transparent"
                             fontSize="14px"
-                            color="#6B7280"
+                            color="rgba(61, 57, 41, 0.7)"
                             fontWeight="500"
+                            fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                             _hover={{
-                              bg: "#F3F4F6",
-                              color: "#374151",
+                              bg: "rgba(61, 57, 41, 0.05)",
+                              color: "#3d3929",
                             }}
                           >
                             <Select.ValueText />
@@ -376,7 +385,9 @@ function App() {
                                 px={3}
                                 py={2}
                                 fontSize="14px"
-                                _hover={{ bg: "#F3F4F6" }}
+                                color="#3d3929"
+                                fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+                                _hover={{ bg: "rgba(61, 57, 41, 0.05)" }}
                               >
                                 <Select.ItemText>{item.label}</Select.ItemText>
                               </Select.Item>
@@ -405,11 +416,12 @@ function App() {
                             borderRadius="6px"
                             bg="transparent"
                             fontSize="14px"
-                            color="#6B7280"
+                            color="rgba(61, 57, 41, 0.7)"
                             fontWeight="500"
+                            fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                             _hover={{
-                              bg: "#F3F4F6",
-                              color: "#374151",
+                              bg: "rgba(61, 57, 41, 0.05)",
+                              color: "#3d3929",
                             }}
                           >
                             <Select.ValueText />
@@ -431,7 +443,9 @@ function App() {
                                 px={3}
                                 py={2}
                                 fontSize="14px"
-                                _hover={{ bg: "#F3F4F6" }}
+                                color="#3d3929"
+                                fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+                                _hover={{ bg: "rgba(61, 57, 41, 0.05)" }}
                               >
                                 <Select.ItemText>{item.label}</Select.ItemText>
                               </Select.Item>
@@ -443,14 +457,20 @@ function App() {
                       <Button
                         w="32px"
                         h="32px"
-                        bg={inputValue.trim() ? "#FF6B35" : "#E5E7EB"}
+                        bg={
+                          inputValue.trim()
+                            ? "#bd5d3a"
+                            : "rgba(61, 57, 41, 0.15)"
+                        }
                         color="white"
                         borderRadius="6px"
                         minW="32px"
                         fontSize="16px"
                         disabled={!inputValue.trim()}
                         _hover={{
-                          bg: inputValue.trim() ? "#EA580C" : "#E5E7EB",
+                          bg: inputValue.trim()
+                            ? "#a04d2f"
+                            : "rgba(61, 57, 41, 0.15)",
                           transform: inputValue.trim()
                             ? "translateY(-1px)"
                             : "none",
@@ -525,18 +545,18 @@ function App() {
                     px={4}
                     py={3}
                     h="auto"
-                    bg="rgba(255, 255, 255, 0.1)"
-                    border="1.5px solid rgba(229, 231, 235, 0.5)"
+                    bg="transparent"
+                    border="1px solid rgba(61, 57, 41, 0.15)"
                     borderRadius="8px"
-                    color="#374151"
+                    color="#3d3929"
                     fontSize="14px"
                     fontWeight="500"
-                    backdropFilter="blur(10px)"
+                    fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+                    backdropFilter="blur(15px)"
                     _hover={{
-                      bg: "rgba(255, 255, 255, 0.2)",
-                      borderColor: "rgba(209, 213, 219, 0.7)",
+                      borderColor: "rgba(61, 57, 41, 0.25)",
                       transform: "translateY(-1px)",
-                      boxShadow: "0 2px 4px -1px rgba(0, 0, 0, 0.1)",
+                      boxShadow: "0 2px 8px -1px rgba(61, 57, 41, 0.15)",
                     }}
                     transition="all 0.2s"
                     onClick={() => {
@@ -544,7 +564,7 @@ function App() {
                     }}
                   >
                     <Flex align="center" gap={2}>
-                      <item.icon size={16} color="#6B7280" />
+                      <item.icon size={16} color="rgba(61, 57, 41, 0.7)" />
                       <Text>{item.text}</Text>
                     </Flex>
                   </Button>
@@ -572,7 +592,7 @@ function App() {
   }
 
   return (
-    <Box minH="100vh" bg="#F7F7F5" position="relative" overflow="hidden">
+    <Box minH="100vh" bg="#faf9f5" position="relative" overflow="hidden">
       {/* 背景装饰 - 与无session时保持一致 */}
       <Box
         position="absolute"
@@ -606,7 +626,7 @@ function App() {
           as="main"
           flex="1"
           direction="column"
-          bg="transparent"
+          bg="#faf9f5"
           position="relative"
           overflow="hidden"
           zIndex={1}
@@ -625,9 +645,9 @@ function App() {
           <Box
             position="sticky"
             bottom={0}
-            bg="rgba(255, 255, 255, 0.95)"
+            bg="rgba(250, 249, 245, 0.95)"
             backdropFilter="blur(20px)"
-            borderTop="1px solid rgba(226, 232, 240, 0.8)"
+            borderTop="1px solid rgba(61, 57, 41, 0.1)"
             px={8}
             py={4}
           >

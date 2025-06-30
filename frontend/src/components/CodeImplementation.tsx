@@ -16,19 +16,19 @@ const CodeImplementation: React.FC = () => {
     <VStack
       align="stretch"
       gap={4}
-      bg="white"
+      bg="rgba(245, 244, 237, 0.8)"
       p={6}
       borderRadius="12px"
-      border="1px solid #e5e7eb"
+      border="1px solid rgba(61, 57, 41, 0.1)"
     >
-      <Text fontSize="16px" fontWeight="600" color="gray.900">
+      <Text fontSize="16px" fontWeight="600" color="#3d3929">
         代码实现区
       </Text>
       <Box
-        border="1px solid #e5e7eb"
+        border="1px solid rgba(61, 57, 41, 0.1)"
         borderRadius="8px"
         overflow="hidden"
-        bg="white"
+        bg="rgba(245, 244, 237, 0.8)"
       >
         <Editor
           height="40vh"
@@ -60,10 +60,10 @@ const CodeImplementation: React.FC = () => {
         />
       </Box>
       <Button
-        bg="#f97316"
+        bg="#bd5d3a"
         color="white"
-        _hover={{ bg: "#ea580c" }}
-        _active={{ bg: "#dc2626" }}
+        _hover={{ bg: "#a04d2f" }}
+        _active={{ bg: "#8b4513" }}
         borderRadius="8px"
         fontWeight="500"
         fontSize="14px"

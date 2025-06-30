@@ -77,14 +77,14 @@ const ChatWindow: React.FC = () => {
           left={0}
           right={0}
           h="3px"
-          bg="rgba(255, 107, 53, 0.15)"
+          bg="rgba(189, 93, 58, 0.15)"
           zIndex={10}
           overflow="hidden"
         >
           <Box
             h="100%"
             w="100%"
-            bg="#FF6B35"
+            bg="#bd5d3a"
             animation="claudePulse 1.8s ease-in-out infinite"
             css={{
               "@keyframes claudePulse": {

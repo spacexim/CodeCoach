@@ -55,9 +55,9 @@ const RightPanel: React.FC = () => {
     <Box
       w={rightPanelCollapsed ? "60px" : "400px"}
       h="100vh"
-      bg="rgba(255, 255, 255, 0.95)"
+      bg="#f5f4ed"
       backdropFilter="blur(20px)"
-      borderLeft="1px solid rgba(226, 232, 240, 0.8)"
+      borderLeft="1px solid rgba(61, 57, 41, 0.1)"
       display="flex"
       flexDirection="column"
       position="relative"
@@ -66,7 +66,7 @@ const RightPanel: React.FC = () => {
     >
       {rightPanelCollapsed ? (
         // 收起状态：显示图标
-        <Box p={3} bg="white">
+        <Box p={3} bg="rgba(245, 244, 237, 0.8)">
           <VStack gap={4} align="center">
             {/* 切换按钮 */}
             <Button
@@ -74,9 +74,9 @@ const RightPanel: React.FC = () => {
               w="40px"
               h="40px"
               borderRadius="8px"
-              bg="rgba(249, 115, 22, 0.1)"
-              color="#f97316"
-              _hover={{ bg: "rgba(249, 115, 22, 0.15)" }}
+              bg="rgba(218, 119, 86, 0.1)"
+              color="#da7756"
+              _hover={{ bg: "rgba(218, 119, 86, 0.15)" }}
               _focus={{ boxShadow: "none", outline: "none" }}
               onClick={toggleRightPanel}
               title="展开右侧面板"
@@ -88,8 +88,8 @@ const RightPanel: React.FC = () => {
             <Box
               w="40px"
               h="40px"
-              bg="rgba(16, 185, 129, 0.1)"
-              color="#10b981"
+              bg="rgba(218, 119, 86, 0.1)"
+              color="#da7756"
               borderRadius="8px"
               display="flex"
               alignItems="center"
@@ -97,7 +97,7 @@ const RightPanel: React.FC = () => {
               cursor="pointer"
               onClick={toggleRightPanel}
               title="问题描述"
-              _hover={{ bg: "rgba(16, 185, 129, 0.15)" }}
+              _hover={{ bg: "rgba(218, 119, 86, 0.15)" }}
             >
               <Text fontSize="18px">📋</Text>
             </Box>
@@ -106,8 +106,8 @@ const RightPanel: React.FC = () => {
             <Box
               w="40px"
               h="40px"
-              bg="rgba(59, 130, 246, 0.1)"
-              color="#3b82f6"
+              bg="rgba(218, 119, 86, 0.1)"
+              color="#da7756"
               borderRadius="8px"
               display="flex"
               alignItems="center"
@@ -115,7 +115,7 @@ const RightPanel: React.FC = () => {
               cursor="pointer"
               onClick={toggleRightPanel}
               title="代码编辑器"
-              _hover={{ bg: "rgba(59, 130, 246, 0.15)" }}
+              _hover={{ bg: "rgba(218, 119, 86, 0.15)" }}
             >
               <Text fontSize="18px">💻</Text>
             </Box>
@@ -127,11 +127,11 @@ const RightPanel: React.FC = () => {
           {/* 标题栏 */}
           <Box
             p={4}
-            borderBottom="1px solid rgba(226, 232, 240, 0.8)"
-            bg="white"
+            borderBottom="1px solid rgba(61, 57, 41, 0.1)"
+            bg="rgba(245, 244, 237, 0.8)"
           >
             <Flex justify="space-between" align="center">
-              <Text fontSize="16px" fontWeight="600" color="gray.900">
+              <Text fontSize="16px" fontWeight="600" color="#3d3929">
                 {isCodeStage ? "代码实现区" : "学习助手"}
               </Text>
               <Button
@@ -139,9 +139,9 @@ const RightPanel: React.FC = () => {
                 w="32px"
                 h="32px"
                 borderRadius="6px"
-                bg="rgba(249, 115, 22, 0.1)"
-                color="#f97316"
-                _hover={{ bg: "rgba(249, 115, 22, 0.15)" }}
+                bg="rgba(218, 119, 86, 0.1)"
+                color="#da7756"
+                _hover={{ bg: "rgba(218, 119, 86, 0.15)" }}
                 _focus={{ boxShadow: "none", outline: "none" }}
                 onClick={toggleRightPanel}
                 title="收起右侧面板"
@@ -154,7 +154,10 @@ const RightPanel: React.FC = () => {
           {/* 问题描述区域 */}
           {problem && (
             <Collapsible.Root defaultOpen>
-              <Box borderBottom="1px solid rgba(226, 232, 240, 0.8)" bg="white">
+              <Box
+                borderBottom="1px solid rgba(61, 57, 41, 0.1)"
+                bg="rgba(245, 244, 237, 0.8)"
+              >
                 {/* 问题标题栏 */}
                 <Collapsible.Trigger asChild>
                   <Flex
@@ -163,16 +166,27 @@ const RightPanel: React.FC = () => {
                     justify="space-between"
                     align="center"
                     cursor="pointer"
-                    _hover={{ bg: "gray.50" }}
+                    _hover={{
+                      bg: "rgba(61, 57, 41, 0.05)",
+                    }}
+                    _active={{
+                      bg: "rgba(61, 57, 41, 0.08)",
+                    }}
+                    _focus={{
+                      outline: "none",
+                      boxShadow: "none",
+                    }}
                     transition="background-color 0.2s"
                     w="full"
                     textAlign="left"
-                    bg="white"
-                    color="gray.700"
+                    bg="rgba(245, 244, 237, 0.8)"
+                    color="#3d3929"
+                    borderRadius="0"
+                    boxShadow="none"
                   >
                     <Flex align="center" gap={2}>
                       <Text fontSize="16px">📋</Text>
-                      <Text fontSize="14px" fontWeight="600" color="gray.700">
+                      <Text fontSize="14px" fontWeight="600" color="#3d3929">
                         当前问题
                       </Text>
                     </Flex>
@@ -186,8 +200,8 @@ const RightPanel: React.FC = () => {
                     pb={4}
                     maxH="200px"
                     overflowY="auto"
-                    bg="white"
-                    color="gray.800"
+                    bg="rgba(245, 244, 237, 0.8)"
+                    color="#3d3929"
                     css={{
                       "&::-webkit-scrollbar": {
                         display: "none",
@@ -198,13 +212,12 @@ const RightPanel: React.FC = () => {
                   >
                     <Box
                       p={3}
-                      bg="white"
-                      borderRadius="8px"
-                      border="1px solid rgba(226, 232, 240, 0.8)"
+                      bg="transparent"
+                      border="none"
                       fontSize="13px"
                       lineHeight="1.6"
-                      color="gray.800"
-                      boxShadow="0 1px 3px rgba(0, 0, 0, 0.1)"
+                      color="#3d3929"
+                      fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                     >
                       <MarkdownRenderer content={problem} />
                     </Box>
@@ -219,7 +232,12 @@ const RightPanel: React.FC = () => {
             {isCodeStage ? (
               // 代码实现阶段：显示代码编辑器
               <>
-                <Box flex="1" border="0" overflow="hidden">
+                <Box
+                  flex="1"
+                  border="0"
+                  overflow="hidden"
+                  bg="rgba(245, 244, 237, 0.8)"
+                >
                   <Editor
                     height="100%"
                     language={language.toLowerCase()}
@@ -253,16 +271,16 @@ const RightPanel: React.FC = () => {
                 {/* 底部操作区 - 代码实现阶段 */}
                 <Box
                   p={4}
-                  borderTop="1px solid rgba(226, 232, 240, 0.8)"
-                  bg="white"
+                  borderTop="1px solid rgba(61, 57, 41, 0.1)"
+                  bg="rgba(245, 244, 237, 0.8)"
                 >
                   <VStack gap={3}>
                     <Button
                       w="full"
-                      bg="#f97316"
+                      bg="#bd5d3a"
                       color="white"
-                      _hover={{ bg: "#ea580c" }}
-                      _active={{ bg: "#dc2626" }}
+                      _hover={{ bg: "#a04d2f" }}
+                      _active={{ bg: "#8b4513" }}
                       borderRadius="8px"
                       fontWeight="500"
                       fontSize="14px"
@@ -277,10 +295,21 @@ const RightPanel: React.FC = () => {
                     <Button
                       w="full"
                       variant="outline"
-                      borderColor="gray.300"
-                      color="gray.600"
-                      _hover={{ bg: "gray.50", borderColor: "gray.400" }}
-                      _active={{ bg: "gray.100" }}
+                      borderColor="rgba(61, 57, 41, 0.3)"
+                      color="rgba(61, 57, 41, 0.7)"
+                      _hover={{
+                        bg: "rgba(61, 57, 41, 0.05)",
+                        borderColor: "rgba(61, 57, 41, 0.4)",
+                      }}
+                      _active={{
+                        bg: "rgba(61, 57, 41, 0.1)",
+                        borderColor: "rgba(61, 57, 41, 0.4)",
+                      }}
+                      _focus={{
+                        boxShadow: "none",
+                        outline: "none",
+                        borderColor: "rgba(61, 57, 41, 0.4)",
+                      }}
                       borderRadius="8px"
                       fontWeight="500"
                       fontSize="14px"
@@ -295,7 +324,12 @@ const RightPanel: React.FC = () => {
             ) : (
               // 前两个阶段：显示代码编辑器但按钮功能不同
               <>
-                <Box flex="1" border="0" overflow="hidden">
+                <Box
+                  flex="1"
+                  border="0"
+                  overflow="hidden"
+                  bg="rgba(245, 244, 237, 0.8)"
+                >
                   <Editor
                     height="100%"
                     language={language.toLowerCase()}
@@ -330,19 +364,23 @@ const RightPanel: React.FC = () => {
                 {canSubmitCode && (
                   <Box
                     p={4}
-                    borderTop="1px solid rgba(226, 232, 240, 0.8)"
-                    bg="white"
+                    borderTop="1px solid rgba(61, 57, 41, 0.1)"
+                    bg="rgba(245, 244, 237, 0.8)"
                   >
                     <VStack gap={3}>
-                      <Text fontSize="12px" color="gray.600" textAlign="center">
+                      <Text
+                        fontSize="12px"
+                        color="rgba(61, 57, 41, 0.7)"
+                        textAlign="center"
+                      >
                         在这里编写你的初步代码想法，提交后进入代码实现阶段
                       </Text>
                       <Button
                         w="full"
-                        bg="#10b981"
+                        bg="#bd5d3a"
                         color="white"
-                        _hover={{ bg: "#059669" }}
-                        _active={{ bg: "#047857" }}
+                        _hover={{ bg: "#a04d2f" }}
+                        _active={{ bg: "#8b4513" }}
                         borderRadius="8px"
                         fontWeight="500"
                         fontSize="14px"

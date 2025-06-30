@@ -27,9 +27,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
         bg="white"
         boxShadow="0 1px 3px rgba(0, 0, 0, 0.05)"
         _focusWithin={{
-          borderColor: "#FF6B35",
-          boxShadow: "0 0 0 3px rgba(255, 107, 53, 0.1)",
+          borderColor: "#bd5d3a",
+          boxShadow: "0 0 0 3px rgba(189, 93, 58, 0.1)",
         }}
+        transition="border-color 0.2s ease, box-shadow 0.2s ease"
       >
         <Textarea
           value={inputValue}
@@ -45,14 +46,16 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
           resize="none"
           outline="none"
           bg="transparent"
-          color="#1F2937"
+          color="#3d3929"
+          fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
           disabled={isStreaming}
           _placeholder={{
-            color: isStreaming ? "#FF6B35" : "#9CA3AF",
+            color: isStreaming ? "#bd5d3a" : "#9CA3AF",
           }}
           _focus={{
             outline: "none",
             boxShadow: "none",
+            border: "none",
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -67,14 +70,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
           right={3}
           w="40px"
           h="40px"
-          bg={inputValue.trim() && !isStreaming ? "#ff6b35" : "#e5e7eb"}
+          bg={inputValue.trim() && !isStreaming ? "#bd5d3a" : "#e5e7eb"}
           color="white"
           borderRadius="8px"
           minW="40px"
           fontSize="18px"
           disabled={!inputValue.trim() || isStreaming}
           _hover={{
-            bg: inputValue.trim() && !isStreaming ? "#e55a2e" : "#e5e7eb",
+            bg: inputValue.trim() && !isStreaming ? "#a04d2f" : "#e5e7eb",
             transform:
               inputValue.trim() && !isStreaming ? "scale(1.05)" : "none",
           }}

@@ -27,7 +27,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           <Box
             w="28px"
             h="28px"
-            bg="#FF6B35"
+            bg="#da7756"
             borderRadius="full"
             display="flex"
             alignItems="center"
@@ -42,59 +42,30 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         )}
 
         <VStack align={isUser ? "flex-end" : "flex-start"} gap={1} maxW="80%">
-          <Text fontSize="12px" color="#6B7280" fontWeight="500" mb={1}>
-            {isUser ? "You" : "Claude"}
+          <Text
+            fontSize="12px"
+            color="rgba(61, 57, 41, 0.7)"
+            fontWeight="500"
+            mb={1}
+          >
+            {isUser ? "You" : "CodeCoach"}
           </Text>
 
           <Box
-            bg={isUser ? "#FF6B35" : "#FFFFFF"}
-            color={isUser ? "white" : "#1e293b"}
+            bg={isUser ? "#f0eee6" : "transparent"}
+            color={isUser ? "#3d3929" : "#3d3929"}
             px={4}
             py={3}
             borderRadius="16px"
             maxW="100%"
             minH="44px" // 添加最小高度，防止抖动
-            boxShadow={
-              isUser
-                ? "0 2px 8px rgba(255, 107, 53, 0.2)"
-                : "0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1)"
-            }
-            border={isUser ? "none" : "1px solid rgba(226, 232, 240, 0.6)"}
-            backdropFilter={isUser ? "none" : "blur(10px)"}
+            boxShadow={isUser ? "none" : "none"}
+            border={isUser ? "1px solid rgba(61, 57, 41, 0.1)" : "none"}
+            backdropFilter="none"
             position="relative"
             transition="none" // 禁用过渡动画，减少抖动
-            _before={
-              isUser
-                ? {}
-                : {
-                    content: '""',
-                    position: "absolute",
-                    top: "-4px",
-                    left: "12px",
-                    w: "12px",
-                    h: "12px",
-                    bg: "rgba(255, 255, 255, 0.95)",
-                    border: "1px solid rgba(226, 232, 240, 0.6)",
-                    borderRight: "none",
-                    borderBottom: "none",
-                    transform: "rotate(45deg)",
-                    backdropFilter: "blur(10px)",
-                  }
-            }
-            _after={
-              isUser
-                ? {
-                    content: '""',
-                    position: "absolute",
-                    top: "12px",
-                    right: "-4px",
-                    w: "12px",
-                    h: "12px",
-                    bg: "#ff6b35",
-                    transform: "rotate(45deg)",
-                  }
-                : {}
-            }
+            _before={{}}
+            _after={{}}
           >
             {isUser ? (
               <Text
@@ -102,6 +73,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                 lineHeight="1.5"
                 whiteSpace="pre-wrap"
                 fontWeight="400"
+                fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
               >
                 {message.text}
               </Text>
@@ -111,6 +83,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                 lineHeight="1.6"
                 minH="20px" // 为AI消息添加最小高度
                 wordBreak="break-word" // 确保长单词正确换行
+                fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
               >
                 <MarkdownRenderer content={message.text} />
               </Box>
