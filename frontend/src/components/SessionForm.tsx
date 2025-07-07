@@ -36,7 +36,7 @@ const SessionForm: React.FC<SessionFormProps> = ({ onStart }) => {
       borderColor="gray.600"
     >
       <VStack gap={6}>
-        <Heading size="lg">开始新的学习会话</Heading>
+        <Heading size="lg">Start New Learning Session</Heading>
         {error && (
           <Box
             p={3}
@@ -51,17 +51,17 @@ const SessionForm: React.FC<SessionFormProps> = ({ onStart }) => {
         )}
         <Box w="full">
           <Text mb={2} fontWeight="medium">
-            编程问题 *
+            Programming Problem *
           </Text>
           <Textarea
             value={problem}
             onChange={(e) => setProblem(e.target.value)}
-            placeholder="输入您想解决的编程问题..."
+            placeholder="Enter the programming problem you want to solve..."
           />
         </Box>
         <Box w="full">
           <Text mb={2} fontWeight="medium">
-            编程语言
+            Programming Language
           </Text>
           <select
             style={{
@@ -81,7 +81,7 @@ const SessionForm: React.FC<SessionFormProps> = ({ onStart }) => {
         </Box>
         <Box w="full">
           <Text mb={2} fontWeight="medium">
-            技能水平
+            Skill Level
           </Text>
           <select
             style={{
@@ -94,9 +94,9 @@ const SessionForm: React.FC<SessionFormProps> = ({ onStart }) => {
             value={skillLevel}
             onChange={(e) => setSkillLevel(e.target.value)}
           >
-            <option value="beginner">初学者</option>
-            <option value="intermediate">中级</option>
-            <option value="advanced">高级</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
           </select>
         </Box>
         <Button
@@ -105,9 +105,9 @@ const SessionForm: React.FC<SessionFormProps> = ({ onStart }) => {
           width="full"
           onClick={handleStartClick}
           loading={isLoading}
-          loadingText="正在开启..."
+          loadingText="Starting..."
         >
-          开始学习
+          Start Learning
         </Button>
       </VStack>
     </Box>

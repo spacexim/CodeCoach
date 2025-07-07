@@ -1,20 +1,20 @@
 # backend/main.py
 import uvicorn
-import uuid  # 用于生成唯一的会话 ID
+import uuid  # For generating unique session IDs
 import os
-import asyncio  # 添加 asyncio 导入
+import asyncio  # Add as        ctx["conversation_history"].append({"role": "user", "content": f"Please explain the concept of \"{concept}\"."})       ctx["conversation_history"].append({"role": "user", "content": f"Please explain the concept of \"{concept}\"."}):ncio import
 from dotenv import load_dotenv
 from typing import Dict
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from basic import InteractiveLearningAssistant # 从 basic.py 导入核心类
+from basic import InteractiveLearningAssistant # Import core class from basic.py
 
-load_dotenv() # 加载 .env 文件中的环境变量
+load_dotenv() # Load environment variables from .env file
 app = FastAPI()
 
-# 1. 配置 CORS
+# 1. Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -23,7 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 2. 定义数据模型
+# 2. Define data models
 class SessionStartRequest(BaseModel):
     problem: str
     language: str
@@ -36,9 +36,9 @@ class HintRequest(BaseModel):
 class CodeFeedbackRequest(BaseModel):
     code: str
 
-# 3. 会话状态管理 (升级版)
+# 3. Session state management (upgraded version)
 class Session:
-    """每个用户一个独立的会话对象"""
+    """Independent session object for each user"""
     def __init__(self, api_key: str, model: str = "anthropic/claude-3.7-sonnet"):
         self.assistant = InteractiveLearningAssistant(
             api_key=api_key,
@@ -46,24 +46,24 @@ class Session:
         )
         self.problem_context: dict = {}
 
-# 使用字典来存储所有会话，key 是 session_id (字符串), value 是 Session 对象
+# Use dictionary to store all sessions, key is session_id (string), value is Session object
 SESSIONS: Dict[str, Session] = {}
 
-# 4. HTTP 端点：开始新会话
+# 4. HTTP endpoint: Start new session
 @app.post("/api/start_session")
 async def start_session(request: SessionStartRequest):
     try:
-        # 从环境变量中读取 API Key
+        # Read API Key from environment variable
         api_key = os.getenv("OPENROUTER_API_KEY")
         if not api_key:
-            raise ValueError("未找到 OPENROUTER_API_KEY 环境变量")
+            raise ValueError("OPENROUTER_API_KEY environment variable not found")
 
         session_id = str(uuid.uuid4())
 
-        # 使用读取到的 key 和选择的模型创建 Session
+        # Create Session using the read key and selected model
         new_session = Session(api_key=api_key, model=request.model)
         
-        # 初始化问题上下文
+        # Initialize problem context
         new_session.problem_context = {
             "problem": request.problem,
             "language": request.language,
@@ -72,25 +72,25 @@ async def start_session(request: SessionStartRequest):
             "current_stage": "problem_analysis"
         }
         
-        # 获取初始引导语
+        # Get initial guidance
         initial_guidance = new_session.assistant.get_initial_guidance(
             problem=request.problem,
             language=request.language,
             skill_level=request.skillLevel
         )
         
-        # 存入对话历史
+        # Store in conversation history
         new_session.problem_context["conversation_history"].append({"role": "assistant", "content": initial_guidance})
         
-        # 将新会话存入全局会话字典
+        # Store new session in global session dictionary
         SESSIONS[session_id] = new_session
         
-        print(f"会话已启动, ID: {session_id}")
+        print(f"Session started, ID: {session_id}")
         # 将 session_id 和初始消息一起返回给前端
         return {"success": True, "sessionId": session_id, "message": initial_guidance}
     
     except Exception as e:
-        print(f"启动会话失败: {e}")
+        print(f"Failed to start session: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -102,7 +102,7 @@ async def explain_concept(session_id: str, concept: str):
     """
     current_session = SESSIONS.get(session_id)
     if not current_session:
-        raise HTTPException(status_code=404, detail="会话未找到。")
+        raise HTTPException(status_code=404, detail="Session not found.")
 
     try:
         # 从当前会话的上下文中获取必要的信息
@@ -124,7 +124,7 @@ async def explain_concept(session_id: str, concept: str):
         return {"success": True, "explanation": explanation}
 
     except Exception as e:
-        print(f"解释概念失败, Session ID: {session_id}, Error: {e}")
+        print(f"Failed to explain concept, Session ID: {session_id}, Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -136,7 +136,7 @@ async def request_hint(session_id: str, request: HintRequest):
     """
     current_session = SESSIONS.get(session_id)
     if not current_session:
-        raise HTTPException(status_code=404, detail="会话未找到。")
+        raise HTTPException(status_code=404, detail="Session not found.")
 
     try:
         ctx = current_session.problem_context
@@ -161,13 +161,13 @@ async def request_hint(session_id: str, request: HintRequest):
         )
 
         # 3. 将用户的请求和AI的提示添加到对话历史
-        ctx["conversation_history"].append({"role": "user", "content": f"我卡住了，需要一个提示：{request.hintRequest}"})
+        ctx["conversation_history"].append({"role": "user", "content": f"I'm stuck and need a hint: {request.hintRequest}"})
         ctx["conversation_history"].append({"role": "assistant", "content": hint})
 
         return {"success": True, "hint": hint}
 
     except Exception as e:
-        print(f"生成提示失败, Session ID: {session_id}, Error: {e}")
+        print(f"Failed to generate hint, Session ID: {session_id}, Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # 4.7. HTTP 端点：获取代码反馈
@@ -178,7 +178,7 @@ async def get_code_feedback(session_id: str, request: CodeFeedbackRequest):
     """
     current_session = SESSIONS.get(session_id)
     if not current_session:
-        raise HTTPException(status_code=404, detail="会话未找到。")
+        raise HTTPException(status_code=404, detail="Session not found.")
 
     try:
         ctx = current_session.problem_context
@@ -194,14 +194,14 @@ async def get_code_feedback(session_id: str, request: CodeFeedbackRequest):
         )
 
         # 将代码和反馈都存入对话历史
-        user_code_submission_text = f"这是我的代码尝试，请给一些反馈：\n```{ctx['language'].lower()}\n{request.code}\n```"
+        user_code_submission_text = f"Here is my code attempt, please give some feedback:\n```{ctx['language'].lower()}\n{request.code}\n```"
         ctx["conversation_history"].append({"role": "user", "content": user_code_submission_text})
         ctx["conversation_history"].append({"role": "assistant", "content": feedback})
 
         return {"success": True, "feedback": feedback}
 
     except Exception as e:
-        print(f"获取代码反馈失败, Session ID: {session_id}, Error: {e}")
+        print(f"Failed to get code feedback, Session ID: {session_id}, Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # 4.8. HTTP 端点：转换到下一个学习阶段
@@ -212,7 +212,7 @@ async def transition_to_next_stage(session_id: str):
     """
     current_session = SESSIONS.get(session_id)
     if not current_session:
-        raise HTTPException(status_code=404, detail="会话未找到。")
+        raise HTTPException(status_code=404, detail="Session not found.")
 
     try:
         ctx = current_session.problem_context
@@ -223,10 +223,10 @@ async def transition_to_next_stage(session_id: str):
         try:
             current_index = learning_stages.index(ctx["current_stage"])
         except ValueError:
-            raise HTTPException(status_code=400, detail="当前阶段状态无效。")
+            raise HTTPException(status_code=400, detail="Invalid current stage.")
 
         if current_index >= len(learning_stages) - 1:
-            return {"success": False, "message": "已经是最后一个学习阶段了。", "newStage": ctx["current_stage"]}
+            return {"success": False, "message": "Already at the last learning stage.", "newStage": ctx["current_stage"]}
 
         previous_stage = ctx["current_stage"]
         new_stage = learning_stages[current_index + 1]
@@ -263,7 +263,7 @@ async def transition_to_next_stage(session_id: str):
         }
 
     except Exception as e:
-        print(f"阶段转换失败, Session ID: {session_id}, Error: {e}")
+        print(f"Failed to transition stage, Session ID: {session_id}, Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # 4.9. HTTP 端点：创建一个微型挑战
@@ -274,7 +274,7 @@ async def create_mini_challenge(session_id: str):
     """
     current_session = SESSIONS.get(session_id)
     if not current_session:
-        raise HTTPException(status_code=404, detail="会话未找到。")
+        raise HTTPException(status_code=404, detail="Session not found.")
 
     try:
         ctx = current_session.problem_context
@@ -302,7 +302,7 @@ async def create_mini_challenge(session_id: str):
         return {"success": True, "challengeData": challenge_data}
 
     except Exception as e:
-        print(f"创建微型挑战失败, Session ID: {session_id}, Error: {e}")
+        print(f"Failed to create mini challenge, Session ID: {session_id}, Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # 4.8.1. HTTP 端点：完成学习
@@ -313,14 +313,14 @@ async def complete_learning(session_id: str):
     """
     current_session = SESSIONS.get(session_id)
     if not current_session:
-        raise HTTPException(status_code=404, detail="会话未找到。")
+        raise HTTPException(status_code=404, detail="Session not found.")
 
     try:
         ctx = current_session.problem_context
         
         # 检查是否已经到达最后一个阶段
         if ctx["current_stage"] != "reflection":
-            return {"success": False, "message": "请先完成所有学习阶段再进行总结。", "currentStage": ctx["current_stage"]}
+            return {"success": False, "message": "Please complete all learning stages before summarizing.", "currentStage": ctx["current_stage"]}
 
         # 生成学习完成总结
         history_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in ctx["conversation_history"]])
@@ -344,11 +344,11 @@ async def complete_learning(session_id: str):
             "success": True, 
             "learningCompleted": True,
             "summary": learning_summary,
-            "message": "恭喜！您已经完成了这个问题的学习。现在可以开始新的问题了。"
+            "message": "Congratulations! You have completed learning this problem. You can now start a new problem."
         }
 
     except Exception as e:
-        print(f"完成学习失败, Session ID: {session_id}, Error: {e}")
+        print(f"Failed to complete learning, Session ID: {session_id}, Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # 4.8.2. HTTP 端点：检查学习状态
@@ -359,7 +359,7 @@ async def get_learning_status(session_id: str):
     """
     current_session = SESSIONS.get(session_id)
     if not current_session:
-        raise HTTPException(status_code=404, detail="会话未找到。")
+        raise HTTPException(status_code=404, detail="Session not found.")
 
     try:
         ctx = current_session.problem_context
@@ -387,7 +387,7 @@ async def get_learning_status(session_id: str):
         }
 
     except Exception as e:
-        print(f"获取学习状态失败, Session ID: {session_id}, Error: {e}")
+        print(f"Failed to get learning status, Session ID: {session_id}, Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # 5. WebSocket 端点：现在路径中包含 session_id
@@ -399,7 +399,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
     current_session = SESSIONS.get(session_id)
     
     if not current_session:
-        await websocket.send_json({"type": "error", "content": "无效的会话ID。请重新开始。"})
+        await websocket.send_json({"type": "error", "content": "Invalid session ID. Please restart."})
         await websocket.close()
         return
 
@@ -435,10 +435,10 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             await websocket.send_json({"type": "end"})
 
     except WebSocketDisconnect:
-        print(f"客户端断开连接, Session ID: {session_id}")
+        print(f"Client disconnected, Session ID: {session_id}")
         # 可以在这里添加清理逻辑，比如一段时间后从 SESSIONS 字典中移除这个会话
     except Exception as e:
-        print(f"WebSocket 错误, Session ID: {session_id}, Error: {e}")
+        print(f"WebSocket error, Session ID: {session_id}, Error: {e}")
         await websocket.send_json({"type": "error", "content": str(e)})
 
 # 启动服务器的代码

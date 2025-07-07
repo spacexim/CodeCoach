@@ -1,7 +1,8 @@
-// frontend/src/store.ts
+// fronte// --- Learning Stage Definitions (Optimized) ---
+// 1. Define a constant array as "single source of truth"/src/store.ts
 import { create } from "zustand";
 
-// --- 类型定义 ---
+// --- Type Definitions ---
 export interface Message {
   sender: "user" | "ai";
   text: string;
@@ -17,7 +18,7 @@ export const learning_stages = [
   "reflection",
 ] as const;
 
-// 2. 从常量数组中自动推断出 Stage 类型
+// 2. Automatically infer Stage type from the constant array
 export type Stage = (typeof learning_stages)[number];
 
 export interface Challenge {
@@ -26,9 +27,9 @@ export interface Challenge {
   explanation: string;
 }
 
-// --- Store 的 State 结构 (修正版) ---
+// --- Store State Structure (Revised) ---
 interface AppState {
-  // 状态 (State)
+  // State
   sessionId: string | null;
   currentStage: Stage;
   language: string;
@@ -36,14 +37,14 @@ interface AppState {
   problem: string;
   messages: Message[];
   isStreaming: boolean;
-  isInitializing: boolean; // 新增：从提交到AI首次响应的过渡状态
+  isInitializing: boolean; // New: transition state from submission to first AI response
   error: string | null;
   challenge: Challenge | null;
-  learningCompleted: boolean; // 新增：标记学习是否已完成
-  sidebarCollapsed: boolean; // 新增：侧边栏收起状态
-  rightPanelCollapsed: boolean; // 新增：右侧面板收起状态
+  learningCompleted: boolean; // New: mark whether learning is completed
+  sidebarCollapsed: boolean; // New: sidebar collapse state
+  rightPanelCollapsed: boolean; // New: right panel collapse state
 
-  // 修改状态的函数 (Actions)
+  // State-modifying functions (Actions)
   setSession: (sessionData: {
     sessionId: string;
     initialMessage: Message;
@@ -56,24 +57,24 @@ interface AppState {
     problem: string;
     language: string;
     skillLevel: string;
-  }) => void; // 新增：只设置session信息，不设置初始消息
+  }) => void; // New: only set session info, don't set initial message
   addMessage: (message: Message) => void;
   appendStreamChunk: (chunk: string) => void;
   setIsStreaming: (isStreaming: boolean) => void;
-  setIsInitializing: (isInitializing: boolean) => void; // 新增
+  setIsInitializing: (isInitializing: boolean) => void; // New
   setCurrentStage: (stage: Stage) => void;
   setError: (error: string | null) => void;
   setChallenge: (challenge: Challenge | null) => void;
-  toggleSidebar: () => void; // 新增：切换侧边栏状态
-  toggleRightPanel: () => void; // 新增：切换右侧面板状态
-  getCodeFeedback: (code: string) => Promise<void>; // 新增：获取代码反馈
-  completeLearning: () => Promise<void>; // 新增：完成学习
+  toggleSidebar: () => void; // New: toggle sidebar state
+  toggleRightPanel: () => void; // New: toggle right panel state
+  getCodeFeedback: (code: string) => Promise<void>; // New: get code feedback
+  completeLearning: () => Promise<void>; // New: complete learning
   resetSession: () => void;
 }
 
-// --- 创建 Store (修正版) ---
+// --- Create Store (Revised) ---
 export const useAppStore = create<AppState>((set) => ({
-  // 初始状态
+  // Initial state
   sessionId: null,
   currentStage: "problem_analysis",
   language: "Python",
@@ -81,14 +82,14 @@ export const useAppStore = create<AppState>((set) => ({
   problem: "",
   messages: [],
   isStreaming: false,
-  isInitializing: false, // 新增初始状态
+  isInitializing: false, // New initial state
   error: null,
   challenge: null,
-  learningCompleted: false, // 新增：初始为未完成
-  sidebarCollapsed: false, // 新增：侧边栏初始为展开状态
-  rightPanelCollapsed: false, // 修改：右侧面板初始为展开状态
+  learningCompleted: false, // New: initially incomplete
+  sidebarCollapsed: false, // New: sidebar initially expanded
+  rightPanelCollapsed: false, // Modified: right panel initially expanded
 
-  // Actions 的具体实现
+  // Actions implementation
   setSession: ({ sessionId, initialMessage, problem, language, skillLevel }) =>
     set({
       sessionId: sessionId,
@@ -98,19 +99,19 @@ export const useAppStore = create<AppState>((set) => ({
       skillLevel: skillLevel,
       currentStage: "problem_analysis",
       error: null,
-      isInitializing: false, // 设置初始消息时结束初始化状态
+      isInitializing: false, // End initialization state when setting initial message
     }),
 
   setSessionInfo: ({ sessionId, problem, language, skillLevel }) =>
     set({
       sessionId: sessionId,
-      messages: [], // 空消息列表，等待AI响应
+      messages: [], // Empty message list, waiting for AI response
       problem: problem,
       language: language,
       skillLevel: skillLevel,
       currentStage: "problem_analysis",
       error: null,
-      isInitializing: true, // 设置为初始化状态
+      isInitializing: true, // Set to initialization state
     }),
 
   addMessage: (message) =>
@@ -134,7 +135,7 @@ export const useAppStore = create<AppState>((set) => ({
 
   setIsStreaming: (isStreaming) => set({ isStreaming }),
 
-  setIsInitializing: (isInitializing) => set({ isInitializing }), // 新增
+  setIsInitializing: (isInitializing) => set({ isInitializing }), // New
 
   setCurrentStage: (stage) => set({ currentStage: stage }),
 
@@ -143,25 +144,25 @@ export const useAppStore = create<AppState>((set) => ({
   setChallenge: (challenge) => set({ challenge }),
 
   toggleSidebar: () =>
-    set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })), // 新增
+    set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })), // New
 
   toggleRightPanel: () =>
-    set((state) => ({ rightPanelCollapsed: !state.rightPanelCollapsed })), // 新增
+    set((state) => ({ rightPanelCollapsed: !state.rightPanelCollapsed })), // New
 
   getCodeFeedback: async (code: string) => {
     const state = useAppStore.getState();
     if (!state.sessionId) {
-      set({ error: "会话未找到，请重新开始" });
+      set({ error: "Session not found, please restart" });
       return;
     }
 
     try {
       set({ isStreaming: true, error: null });
 
-      // 先在聊天窗口显示用户提交的代码
+      // First display user's submitted code in chat window
       const userMessage: Message = {
         sender: "user",
-        text: `我已经完成了代码，请给我一些反馈：\n\`\`\`${state.language.toLowerCase()}\n${code}\n\`\`\``,
+        text: `I have completed the code, please give me some feedback:\n\`\`\`${state.language.toLowerCase()}\n${code}\n\`\`\``,
       };
       set((state) => ({
         messages: [...state.messages, userMessage],
@@ -187,7 +188,7 @@ export const useAppStore = create<AppState>((set) => ({
       const data = await response.json();
 
       if (data.success) {
-        // 添加AI反馈消息
+        // Add AI feedback message
         const aiMessage: Message = {
           sender: "ai",
           text: data.feedback,
@@ -197,12 +198,15 @@ export const useAppStore = create<AppState>((set) => ({
           isStreaming: false,
         }));
       } else {
-        throw new Error("获取代码反馈失败");
+        throw new Error("Failed to get code feedback");
       }
     } catch (error) {
-      console.error("获取代码反馈时出错:", error);
+      console.error("Error getting code feedback:", error);
       set({
-        error: error instanceof Error ? error.message : "获取代码反馈时出错",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Error getting code feedback",
         isStreaming: false,
       });
     }
@@ -211,7 +215,7 @@ export const useAppStore = create<AppState>((set) => ({
   completeLearning: async () => {
     const state = useAppStore.getState();
     if (!state.sessionId) {
-      set({ error: "会话未找到，请重新开始" });
+      set({ error: "Session not found, please restart" });
       return;
     }
 
@@ -235,7 +239,7 @@ export const useAppStore = create<AppState>((set) => ({
       const data = await response.json();
 
       if (data.success) {
-        // 添加学习总结消息
+        // Add learning summary message
         const summaryMessage: Message = {
           sender: "ai",
           text: data.summary,
@@ -243,15 +247,16 @@ export const useAppStore = create<AppState>((set) => ({
         set((state) => ({
           messages: [...state.messages, summaryMessage],
           isStreaming: false,
-          learningCompleted: true, // 标记学习已完成
+          learningCompleted: true, // Mark learning as completed
         }));
       } else {
-        throw new Error(data.message || "完成学习失败");
+        throw new Error(data.message || "Failed to complete learning");
       }
     } catch (error) {
-      console.error("完成学习时出错:", error);
+      console.error("Error completing learning:", error);
       set({
-        error: error instanceof Error ? error.message : "完成学习时出错",
+        error:
+          error instanceof Error ? error.message : "Error completing learning",
         isStreaming: false,
       });
     }

@@ -17,15 +17,17 @@ const RightPanel: React.FC = () => {
     problem,
     setCurrentStage,
   } = useAppStore();
-  const [code, setCode] = useState<string>("# 在这里开始编写你的代码...\n");
+  const [code, setCode] = useState<string>(
+    "# Start writing your code here...\n"
+  );
 
   const handleGetCodeFeedback = async () => {
-    if (!code.trim() || code.trim() === "# 在这里开始编写你的代码...") {
-      console.log("请先编写一些代码");
+    if (!code.trim() || code.trim() === "# Start writing your code here...") {
+      console.log("Please write some code first");
       return;
     }
 
-    // 如果当前不在代码实现或测试优化阶段，先跳转到代码实现阶段
+    // If not in implementation or testing_refinement stage, switch to implementation stage first
     if (
       currentStage !== "implementation" &&
       currentStage !== "testing_refinement"
@@ -37,12 +39,12 @@ const RightPanel: React.FC = () => {
   };
 
   const handleCodeSubmit = () => {
-    if (!code.trim() || code.trim() === "# 在这里开始编写你的代码...") {
-      console.log("请先编写一些代码");
+    if (!code.trim() || code.trim() === "# Start writing your code here...") {
+      console.log("Please write some code first");
       return;
     }
 
-    // 跳转到代码实现阶段
+    // Switch to implementation stage
     setCurrentStage("implementation");
   };
 
@@ -63,7 +65,7 @@ const RightPanel: React.FC = () => {
     });
   };
 
-  // 根据当前阶段确定显示内容
+  // Determine display content based on current stage
   const isCodeStage =
     currentStage === "implementation" || currentStage === "testing_refinement";
   const canSubmitCode =
@@ -83,10 +85,10 @@ const RightPanel: React.FC = () => {
       transition="width 0.3s ease"
     >
       {rightPanelCollapsed ? (
-        // 收起状态：显示图标
+        // Collapsed state: show icons
         <Box p={3} bg="rgba(245, 244, 237, 0.8)">
           <VStack gap={4} align="center">
-            {/* 切换按钮 */}
+            {/* Toggle button */}
             <Button
               variant="ghost"
               w="40px"
@@ -97,12 +99,12 @@ const RightPanel: React.FC = () => {
               _hover={{ bg: "rgba(61, 57, 41, 0.08)", color: "#3d3d3a" }}
               _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
               onClick={toggleRightPanel}
-              title="展开右侧面板"
+              title="Expand right panel"
             >
               <PanelRight />
             </Button>
 
-            {/* 问题描述图标 */}
+            {/* Problem description icon */}
             <Button
               variant="ghost"
               w="40px"
@@ -113,12 +115,12 @@ const RightPanel: React.FC = () => {
               _hover={{ bg: "rgba(61, 57, 41, 0.08)", color: "#3d3d3a" }}
               _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
               onClick={toggleRightPanel}
-              title="问题描述"
+              title="Problem Description"
             >
               <FileText />
             </Button>
 
-            {/* 代码图标 */}
+            {/* Code icon */}
             <Button
               variant="ghost"
               w="40px"
@@ -129,16 +131,16 @@ const RightPanel: React.FC = () => {
               _hover={{ bg: "rgba(61, 57, 41, 0.08)", color: "#3d3d3a" }}
               _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
               onClick={toggleRightPanel}
-              title="代码编辑器"
+              title="Code Editor"
             >
               <Code2 />
             </Button>
           </VStack>
         </Box>
       ) : (
-        // 展开状态：显示完整内容
+        // Expanded state: show full content
         <>
-          {/* 标题栏 */}
+          {/* Title bar */}
           <Box
             p={4}
             borderBottom="1px solid rgba(61, 57, 41, 0.1)"
@@ -163,21 +165,21 @@ const RightPanel: React.FC = () => {
                 _hover={{ bg: "rgba(61, 57, 41, 0.08)", color: "#3d3d3a" }}
                 _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
                 onClick={toggleRightPanel}
-                title="展开右侧面板"
+                title="Expand right panel"
               >
                 <PanelRight />
               </Button>
             </Flex>
           </Box>
 
-          {/* 问题描述区域 */}
+          {/* Problem description area */}
           {problem && (
             <Collapsible.Root defaultOpen>
               <Box
                 borderBottom="1px solid rgba(61, 57, 41, 0.1)"
                 bg="rgba(245, 244, 237, 0.8)"
               >
-                {/* 问题标题栏 */}
+                {/* Problem title bar */}
                 <Collapsible.Trigger asChild>
                   <Flex
                     as="button"
@@ -210,13 +212,13 @@ const RightPanel: React.FC = () => {
                         fontWeight="600"
                         fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
                       >
-                        当前问题
+                        Current Problem
                       </Text>
                     </Flex>
                   </Flex>
                 </Collapsible.Trigger>
 
-                {/* 问题内容 */}
+                {/* Problem content */}
                 <Collapsible.Content>
                   <Box
                     px={4}
@@ -250,10 +252,10 @@ const RightPanel: React.FC = () => {
             </Collapsible.Root>
           )}
 
-          {/* 主要内容区域 */}
+          {/* Main content area */}
           <Box flex="1" display="flex" flexDirection="column">
             {isCodeStage ? (
-              // 代码实现阶段：显示代码编辑器
+              // Implementation stage: show code editor
               <>
                 <Box flex="1" border="0" overflow="hidden" bg="#f5f4ed">
                   <Editor
@@ -292,7 +294,7 @@ const RightPanel: React.FC = () => {
                   />
                 </Box>
 
-                {/* 底部操作区 - 代码实现阶段 */}
+                {/* Bottom action area - Implementation stage */}
                 <Box
                   p={4}
                   borderTop="1px solid rgba(61, 57, 41, 0.1)"
@@ -311,16 +313,16 @@ const RightPanel: React.FC = () => {
                       h="40px"
                       onClick={handleGetCodeFeedback}
                       loading={isStreaming}
-                      loadingText="获取反馈中..."
+                      loadingText="Getting feedback..."
                       disabled={isStreaming}
                     >
-                      获取代码反馈
+                      Get Code Feedback
                     </Button>
                   </VStack>
                 </Box>
               </>
             ) : (
-              // 前两个阶段：显示代码编辑器但按钮功能不同
+              // First two stages: show code editor but different button functionality
               <>
                 <Box flex="1" border="0" overflow="hidden" bg="#f5f4ed">
                   <Editor
@@ -359,7 +361,7 @@ const RightPanel: React.FC = () => {
                   />
                 </Box>
 
-                {/* 底部操作区 - 前两个阶段 */}
+                {/* Bottom action area - First two stages */}
                 {canSubmitCode && (
                   <Box
                     p={4}
@@ -372,7 +374,8 @@ const RightPanel: React.FC = () => {
                         color="rgba(61, 57, 41, 0.7)"
                         textAlign="center"
                       >
-                        在这里编写你的初步代码想法，提交后进入代码实现阶段
+                        Write your initial code ideas here, submit to enter
+                        implementation stage
                       </Text>
                       <Button
                         w="full"
@@ -387,10 +390,10 @@ const RightPanel: React.FC = () => {
                         onClick={handleCodeSubmit}
                         disabled={
                           !code.trim() ||
-                          code.trim() === "# 在这里开始编写你的代码..."
+                          code.trim() === "# Start writing your code here..."
                         }
                       >
-                        提交代码并进入实现阶段
+                        Submit Code and Enter Implementation Phase
                       </Button>
                     </VStack>
                   </Box>

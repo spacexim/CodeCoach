@@ -5,18 +5,18 @@ import { Box, Button, VStack, Text, Input, Flex } from "@chakra-ui/react";
 import {
   MessageCircle,
   Target,
-  Code,
   Album,
   PanelLeft,
   Check,
+  Code,
 } from "lucide-react";
 
 const stageDisplayNames: Record<Stage, string> = {
-  problem_analysis: "问题分析",
-  solution_design: "方案设计",
-  implementation: "代码实现",
-  testing_refinement: "测试与优化",
-  reflection: "反思与总结",
+  problem_analysis: "Problem Analysis",
+  solution_design: "Solution Design",
+  implementation: "Implementation",
+  testing_refinement: "Testing & Optimization",
+  reflection: "Reflection",
 };
 
 // Reusable button component for the sidebar
@@ -179,7 +179,7 @@ const Sidebar: React.FC = () => {
     handleApiCall(
       `http://localhost:8000/api/session/${sessionId}/explain/${conceptInput}`,
       {},
-      `请你解释一下"${conceptInput}"这个概念。`,
+      `Please explain the concept of "${conceptInput}".`,
       (data) =>
         addMessage({
           sender: "ai",
@@ -194,7 +194,7 @@ const Sidebar: React.FC = () => {
     if (!hintInput.trim() || !sessionId) return;
     addMessage({
       sender: "user",
-      text: `我卡住了，需要一个提示：${hintInput}`,
+      text: `I'm stuck and need a hint: ${hintInput}`,
     });
     const hintToFetch = hintInput;
     setHintInput("");
@@ -229,14 +229,18 @@ const Sidebar: React.FC = () => {
       );
       if (!response.ok) {
         if (response.status === 404) {
-          const shouldReset = window.confirm("会话已过期，是否重新开始学习？");
+          const shouldReset = window.confirm(
+            "Session expired. Start new learning session?"
+          );
           if (shouldReset) {
             resetSession();
             return;
           }
-          throw new Error("会话已过期，请重新开始学习");
+          throw new Error(
+            "Session expired. Please start a new learning session"
+          );
         }
-        throw new Error("阶段切换失败");
+        throw new Error("Failed to switch stage");
       }
       const data = await response.json();
       if (data.success) {
@@ -261,7 +265,7 @@ const Sidebar: React.FC = () => {
       await completeLearning();
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : "完成学习时出错";
+        err instanceof Error ? err.message : "Error during learning completion";
       setError(errorMessage);
     } finally {
       setIsTransitioning(false);
@@ -281,14 +285,18 @@ const Sidebar: React.FC = () => {
       );
       if (!response.ok) {
         if (response.status === 404) {
-          const shouldReset = window.confirm("会话已过期，是否重新开始学习？");
+          const shouldReset = window.confirm(
+            "Session expired. Start new learning session?"
+          );
           if (shouldReset) {
             resetSession();
             return;
           }
-          throw new Error("会话已过期，请重新开始学习");
+          throw new Error(
+            "Session expired. Please start a new learning session"
+          );
         }
-        throw new Error("获取挑战失败");
+        throw new Error("Failed to get challenge");
       }
       const data = await response.json();
       if (data.success) {
@@ -347,7 +355,7 @@ const Sidebar: React.FC = () => {
               _hover={{ bg: "rgba(61, 57, 41, 0.08)", color: "#3d3d3a" }}
               _active={{ bg: "rgba(61, 57, 41, 0.12)" }}
               onClick={toggleSidebar}
-              title={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
+              title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
               transition="background-color 0.2s, width 0.2s, padding 0.2s"
               border="none"
               variant="ghost"
@@ -367,7 +375,7 @@ const Sidebar: React.FC = () => {
               borderRadius="6px"
               bg="transparent"
               onClick={() => resetSession()}
-              title="CodeCoach - 返回首页"
+              title="CodeCoach - Back to Home"
               transition="background-color 0.2s, max-width 0.2s"
               textAlign="left"
               overflow="hidden"
@@ -398,39 +406,39 @@ const Sidebar: React.FC = () => {
           {/* Tools */}
           <SidebarButton
             icon={<Album size={20} />}
-            text="解释概念"
+            text="Explain Concept"
             onClick={() => setShowConceptInput(!showConceptInput)}
             isCollapsed={sidebarCollapsed}
             showText={showText}
-            title="解释概念"
+            title="Explain Concept"
             disabled={!sessionId}
           />
           <SidebarButton
             icon={<MessageCircle size={20} />}
-            text="请求提示"
+            text="Request Hint"
             onClick={() => setShowHintInput(!showHintInput)}
             isCollapsed={sidebarCollapsed}
             showText={showText}
-            title="请求提示"
+            title="Request Hint"
             disabled={!sessionId}
           />
           <SidebarButton
             icon={<Target size={20} />}
-            text="接受挑战"
+            text="Take Challenge"
             onClick={handleRequestChallenge}
             isCollapsed={sidebarCollapsed}
             showText={showText}
-            title="接受挑战"
+            title="Take Challenge"
             disabled={!sessionId}
           />
           {sessionId && currentStage === "implementation" && (
             <SidebarButton
               icon={<Code size={20} />}
-              text="代码编辑器"
+              text="Code Editor"
               onClick={toggleRightPanel}
               isCollapsed={sidebarCollapsed}
               showText={showText}
-              title="代码编辑器"
+              title="Code Editor"
             />
           )}
 
@@ -438,17 +446,21 @@ const Sidebar: React.FC = () => {
           {!sidebarCollapsed && showConceptInput && (
             <Box mt={2}>
               <Input
-                placeholder="输入要解释的概念..."
+                placeholder="Enter concept to explain..."
                 value={conceptInput}
                 onChange={(e) => setConceptInput(e.target.value)}
                 size="sm"
                 mb={2}
                 bg="rgba(255, 255, 255, 0.95)"
                 border="1px solid rgba(61, 57, 41, 0.2)"
+                color="#3d3929 !important"
+                _placeholder={{ color: "rgba(61, 57, 41, 0.6) !important" }}
                 _focus={{
                   borderColor: "#bd5d3a",
                   boxShadow: "0 0 0 1px #bd5d3a",
+                  color: "#3d3929 !important",
                 }}
+                fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
               />
               <Button
                 size="sm"
@@ -457,7 +469,7 @@ const Sidebar: React.FC = () => {
                 onClick={handleExplainConcept}
                 disabled={!conceptInput.trim()}
               >
-                解释
+                Explain
               </Button>
             </Box>
           )}
@@ -465,17 +477,21 @@ const Sidebar: React.FC = () => {
           {!sidebarCollapsed && showHintInput && (
             <Box mt={2}>
               <Input
-                placeholder="描述你遇到的问题..."
+                placeholder="Describe the problem you're facing..."
                 value={hintInput}
                 onChange={(e) => setHintInput(e.target.value)}
                 size="sm"
                 mb={2}
                 bg="rgba(255, 255, 255, 0.95)"
                 border="1px solid rgba(61, 57, 41, 0.2)"
+                color="#3d3929 !important"
+                _placeholder={{ color: "rgba(61, 57, 41, 0.6) !important" }}
                 _focus={{
                   borderColor: "#bd5d3a",
                   boxShadow: "0 0 0 1px #bd5d3a",
+                  color: "#3d3929 !important",
                 }}
+                fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
               />
               <Button
                 size="sm"
@@ -484,7 +500,7 @@ const Sidebar: React.FC = () => {
                 onClick={handleRequestHint}
                 disabled={!hintInput.trim()}
               >
-                获取提示
+                Get Hint
               </Button>
             </Box>
           )}
@@ -513,7 +529,7 @@ const Sidebar: React.FC = () => {
                   mb={4}
                   fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
                 >
-                  学习进度
+                  Learning Progress
                 </Text>
                 <Box
                   p={4}
@@ -529,7 +545,7 @@ const Sidebar: React.FC = () => {
                     mb={1}
                     fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
                   >
-                    当前阶段
+                    Current Stage
                   </Text>
                   <Text
                     fontSize="15px"
@@ -597,16 +613,16 @@ const Sidebar: React.FC = () => {
                     _hover={{ bg: "#a04d2f" }}
                     onClick={handleStageTransition}
                     loading={isTransitioning}
-                    loadingText="切换中..."
+                    loadingText="Switching..."
                     disabled={isTransitioning}
                   >
-                    进入下一阶段 →
+                    Enter Next Stage →
                   </Button>
                 ) : (
-                  // 根据学习状态显示不同的按钮
+                  // Show different buttons based on learning status
                   currentStage === "reflection" &&
                   (learningCompleted ? (
-                    // 学习已完成，显示开始新问题按钮
+                    // Learning completed, show start new problem button
                     <Button
                       mt={4}
                       w="full"
@@ -618,10 +634,10 @@ const Sidebar: React.FC = () => {
                       }}
                       disabled={isTransitioning}
                     >
-                      🚀 开始新问题
+                      🚀 Start New Problem
                     </Button>
                   ) : (
-                    // 学习未完成，显示完成学习按钮
+                    // Learning not completed, show complete learning button
                     <Button
                       mt={4}
                       w="full"
@@ -630,10 +646,10 @@ const Sidebar: React.FC = () => {
                       _hover={{ bg: "#218838" }}
                       onClick={handleCompleteLearning}
                       loading={isTransitioning}
-                      loadingText="完成中..."
+                      loadingText="Completing..."
                       disabled={isTransitioning}
                     >
-                      ✨ 完成学习
+                      ✨ Complete Learning
                     </Button>
                   ))
                 )}
@@ -647,7 +663,7 @@ const Sidebar: React.FC = () => {
                   mb={4}
                   fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
                 >
-                  开始学习
+                  Start Learning
                 </Text>
                 <Text
                   fontSize="13px"
@@ -655,7 +671,9 @@ const Sidebar: React.FC = () => {
                   lineHeight="1.5"
                   fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
                 >
-                  在右侧输入框中描述你想学习的编程概念，我将引导你通过结构化的方式深入理解。
+                  Describe the programming concept you want to learn in the
+                  input box on the right side. I will guide you through a
+                  structured approach to deep understanding.
                 </Text>
               </Box>
             )}
@@ -687,21 +705,23 @@ const Sidebar: React.FC = () => {
                 color="#3d3929"
                 fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
               >
-                解释概念
+                Explain Concept
               </Text>
               <Input
-                placeholder="输入要解释的概念..."
+                placeholder="Enter concept to explain..."
                 value={conceptInput}
                 onChange={(e) => setConceptInput(e.target.value)}
                 size="sm"
                 bg="rgba(255, 255, 255, 0.95)"
                 border="1px solid rgba(61, 57, 41, 0.2)"
-                color="#3d3929"
-                _placeholder={{ color: "rgba(61, 57, 41, 0.6)" }}
+                color="#3d3929 !important"
+                _placeholder={{ color: "rgba(61, 57, 41, 0.6) !important" }}
                 _focus={{
                   borderColor: "#bd5d3a",
                   boxShadow: "0 0 0 1px #bd5d3a",
+                  color: "#3d3929 !important",
                 }}
+                fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
               />
               <Flex gap={2}>
                 <Button
@@ -712,7 +732,7 @@ const Sidebar: React.FC = () => {
                   disabled={!conceptInput.trim()}
                   flex={1}
                 >
-                  解释
+                  Explain
                 </Button>
                 <Button
                   size="sm"
@@ -731,7 +751,7 @@ const Sidebar: React.FC = () => {
                   }}
                   onClick={() => setShowConceptInput(false)}
                 >
-                  取消
+                  Cancel
                 </Button>
               </Flex>
             </VStack>
@@ -739,21 +759,23 @@ const Sidebar: React.FC = () => {
           {showHintInput && (
             <VStack gap={3} align="stretch">
               <Text fontSize="14px" fontWeight="600" color="#3d3929">
-                请求提示
+                Request Hint
               </Text>
               <Input
-                placeholder="描述你遇到的问题..."
+                placeholder="Describe the problem you're facing..."
                 value={hintInput}
                 onChange={(e) => setHintInput(e.target.value)}
                 size="sm"
                 bg="rgba(255, 255, 255, 0.95)"
                 border="1px solid rgba(61, 57, 41, 0.2)"
-                color="#3d3929"
-                _placeholder={{ color: "rgba(61, 57, 41, 0.6)" }}
+                color="#3d3929 !important"
+                _placeholder={{ color: "rgba(61, 57, 41, 0.6) !important" }}
                 _focus={{
                   borderColor: "#bd5d3a",
                   boxShadow: "0 0 0 1px #bd5d3a",
+                  color: "#3d3929 !important",
                 }}
+                fontFamily="'StyreneB', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
               />
               <Flex gap={2}>
                 <Button
@@ -764,7 +786,7 @@ const Sidebar: React.FC = () => {
                   disabled={!hintInput.trim()}
                   flex={1}
                 >
-                  获取提示
+                  Get Hint
                 </Button>
                 <Button
                   size="sm"
@@ -783,7 +805,7 @@ const Sidebar: React.FC = () => {
                   }}
                   onClick={() => setShowHintInput(false)}
                 >
-                  取消
+                  Cancel
                 </Button>
               </Flex>
             </VStack>

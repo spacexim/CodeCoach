@@ -38,7 +38,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
         <Textarea
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder="继续对话..."
+          placeholder="Continue conversation..."
           w="100%"
           minH="80px"
           p={4}

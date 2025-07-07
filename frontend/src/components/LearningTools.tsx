@@ -29,13 +29,13 @@ const LearningTools: React.FC<LearningToolsProps> = ({
   return (
     <HStack gap={3}>
       <Button {...buttonStyle} onClick={onExplainConceptClick}>
-        解释概念
+        Explain Concept
       </Button>
       <Button {...buttonStyle} onClick={onRequestHintClick}>
-        请求提示
+        Request Hint
       </Button>
       <Button {...buttonStyle} onClick={onRequestChallengeClick}>
-        接受挑战
+        Take Challenge
       </Button>
     </HStack>
   );

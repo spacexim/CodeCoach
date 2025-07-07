@@ -101,7 +101,7 @@ function App() {
         body: JSON.stringify({ problem, language, skillLevel, model }),
       });
       if (!response.ok)
-        throw new Error((await response.json()).detail || "服务器错误");
+        throw new Error((await response.json()).detail || "Server error");
       const data = await response.json();
       if (data.success) {
         // 更新为真实的session ID并设置初始AI消息
@@ -115,12 +115,14 @@ function App() {
         connectWebSocket(data.sessionId);
         // isInitializing在setSession中已经设置为false
       } else {
-        setError(data.error || "启动失败");
+        setError(data.error || "Startup failed");
         setIsInitializing(false);
       }
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : "无法连接到后端服务";
+        err instanceof Error
+          ? err.message
+          : "Unable to connect to backend service";
       setError(errorMessage);
       setIsInitializing(false);
     }
@@ -503,22 +505,26 @@ function App() {
                   {
                     icon: Pencil,
                     text: "Write",
-                    prompt: "我想学习如何编写清晰的代码注释和文档",
+                    prompt:
+                      "I want to learn how to write clear code comments and documentation",
                   },
                   {
                     icon: GraduationCap,
                     text: "Learn",
-                    prompt: "请教我数据结构中栈的基本概念和实现",
+                    prompt:
+                      "Please teach me the basic concepts and implementation of stacks in data structures",
                   },
                   {
                     icon: Code,
                     text: "Code",
-                    prompt: "我想练习实现一个简单的排序算法",
+                    prompt:
+                      "I want to practice implementing a simple sorting algorithm",
                   },
                   {
                     icon: Dices,
                     text: "Challenge",
-                    prompt: "给我一个适合我水平的编程挑战",
+                    prompt:
+                      "Give me a programming challenge suitable for my level",
                   },
                 ].map((item, index) => (
                   <Button

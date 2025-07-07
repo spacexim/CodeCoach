@@ -1,25 +1,25 @@
 /* frontend/src/styles/fonts.css */
 
-/* 为 Tiempos Text 常规体定义规则 */
+/* Define rules for Tiempos Text regular */
 @font-face {
-  font-family: "Tiempos Text"; /* 定义一个你将在代码中使用的名字 */
+  font-family: "Tiempos Text"; /* Define a name you will use in your code */
   src: url("/fonts/TestTiemposText-Regular.otf") format("opentype");
-  font-weight: 400; /* 400 代表 Regular */
+  font-weight: 400; /* 400 represents Regular */
   font-style: normal;
 }
 
-/* 为 Tiempos Text 斜体定义规则 */
+/* Define rules for Tiempos Text italic */
 @font-face {
   font-family: "Tiempos Text";
   src: url("/fonts/TestTiemposText-RegularItalic.otf") format("opentype");
   font-weight: 400;
-  font-style: italic; /* 注意这里是 italic */
+  font-style: italic; /* Note this is italic */
 }
 
 @font-face {
   font-family: "Tiempos Text";
   src: url("/fonts/TestTiemposText-Bold.otf") format("opentype");
-  font-weight: 700; /* 700 代表 Bold */
+  font-weight: 700; /* 700 represents Bold */
   font-style: normal;
 }
 
@@ -38,30 +38,29 @@
 }
 
 @font-face {
-  /* 这个名字就是您要在 React 代码中使用的名字 */
+  /* This is the name you will use in your React code */
   font-family: "StyreneB";
 
-  /* 指向您放在 public 目录下的字体文件。
-    路径是相对于网站根目录的，所以以 / 开头。
-  */
+  /* Points to the font file in your public directory.
+     Path is relative to the website root, so starts with / */
   src: url("/fonts/StyreneB-Regular.otf") format("opentype");
 
-  /* 定义字重和样式，一个文件对应一个规则 */
-  font-weight: 400; /* 400 是 normal/regular */
+  /* Define font weight and style, one file per rule */
+  font-weight: 400; /* 400 is normal/regular */
   font-style: normal;
 }
 
-/* 如果您还有粗体，需要再定义一个 */
+/* If you have bold, you need to define another one */
 /*
 @font-face {
   font-family: 'StyreneB';
   src: url('/fonts/StyreneB-Bold.woff2') format('woff2');
-  font-weight: 700; // 700 是 bold
+  font-weight: 700; // 700 is bold
   font-style: normal;
 }
 */
 
-/* 强制所有代码相关元素使用 JetBrains Mono */
+/* Force all code-related elements to use JetBrains Mono */
 code,
 pre,
 .language-*,
@@ -70,18 +69,18 @@ pre,
   font-family: "JetBrains Mono", monospace !important;
 }
 
-/* 确保 SyntaxHighlighter 组件使用 JetBrains Mono */
+/* Ensure SyntaxHighlighter component uses JetBrains Mono */
 .hljs,
 .hljs * {
   font-family: "JetBrains Mono", monospace !important;
 }
 
-/* 专门针对 Prism.js 的样式 */
+/* Styles specifically for Prism.js */
 .token {
   font-family: "JetBrains Mono", monospace !important;
 }
 
-/* Chakra UI Code 组件 */
+/* Chakra UI Code component */
 .chakra-code {
   font-family: "JetBrains Mono", monospace !important;
 }
