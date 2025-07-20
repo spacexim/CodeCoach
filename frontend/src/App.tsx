@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAppStore } from "./store";
+import { API_BASE_URL } from "./config/api";
 import Sidebar from "./components/Sidebar";
 import ChatWindow from "./components/ChatWindow";
 import ChatInput from "./components/ChatInput";
@@ -81,8 +82,7 @@ function App() {
   const handleStartSession = async (
     problem: string,
     language: string,
-    skillLevel: string,
-    model: string
+    skillLevel: string
   ) => {
     setError(null);
     try {
@@ -95,10 +95,15 @@ function App() {
         skillLevel,
       });
 
-      const response = await fetch("http://localhost:8000/api/start_session", {
+      const response = await fetch(`${API_BASE_URL}/api/start_session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ problem, language, skillLevel, model }),
+        body: JSON.stringify({ 
+          problem, 
+          language, 
+          skillLevel, 
+          model: "anthropic/claude-3.7-sonnet" 
+        }),
       });
       if (!response.ok)
         throw new Error((await response.json()).detail || "Server error");
@@ -477,10 +482,7 @@ function App() {
                             handleStartSession(
                               inputValue,
                               language,
-                              skillLevel,
-                              modelMapping[
-                                selectedModel as keyof typeof modelMapping
-                              ] || "anthropic/claude-3.7-sonnet"
+                              skillLevel
                             );
                           }
                         }}
