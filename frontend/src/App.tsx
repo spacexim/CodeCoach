@@ -62,7 +62,9 @@ function App() {
 
   const connectWebSocket = (newSessionId: string) => {
     if (ws.current) ws.current.close();
-    ws.current = new WebSocket(`ws://localhost:8000/ws/chat/${newSessionId}`);
+    // 将 HTTP URL 转换为 WebSocket URL
+    const wsUrl = API_BASE_URL.replace('https://', 'wss://').replace('http://', 'ws://');
+    ws.current = new WebSocket(`${wsUrl}/ws/chat/${newSessionId}`);
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === "chunk") {

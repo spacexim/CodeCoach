@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAppStore } from "../store";
+import { API_BASE_URL } from "../config/api";
 import {
   Box,
   Button,
@@ -52,7 +53,7 @@ const SmartCodeAnalyzer: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/session/${sessionId}/feedback_v2`,
+        `${API_BASE_URL}/api/session/${sessionId}/feedback_v2`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -1,6 +1,7 @@
 // frontend/src/components/Sidebar.tsx
 import React, { useState, useRef, useEffect } from "react";
 import { useAppStore, learning_stages, type Stage } from "../store";
+import { API_BASE_URL } from "../config/api";
 import { Box, Button, VStack, Text, Input, Flex } from "@chakra-ui/react";
 import {
   MessageCircle,
@@ -177,7 +178,7 @@ const Sidebar: React.FC = () => {
   const handleExplainConcept = () => {
     if (!conceptInput.trim()) return;
     handleApiCall(
-      `http://localhost:8000/api/session/${sessionId}/explain/${conceptInput}`,
+      `${API_BASE_URL}/api/session/${sessionId}/explain/${conceptInput}`,
       {},
       `Please explain the concept of "${conceptInput}".`,
       (data) =>
@@ -193,7 +194,7 @@ const Sidebar: React.FC = () => {
   const handleRequestHint = async () => {
     if (!hintInput.trim()) return;
     handleApiCall(
-      `http://localhost:8000/api/session/${sessionId}/hint/${hintInput}`,
+      `${API_BASE_URL}/api/session/${sessionId}/hint/${hintInput}`,
       {},
       `Please provide a hint for the problem: "${hintInput}".`,
       (data) =>
@@ -216,7 +217,7 @@ const Sidebar: React.FC = () => {
     setChallenge(null);
     try {
       const response = await fetch(
-        `http://localhost:8000/api/session/${sessionId}/challenge`,
+        `${API_BASE_URL}/api/session/${sessionId}/challenge`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

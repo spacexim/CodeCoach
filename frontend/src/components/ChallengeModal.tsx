@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAppStore } from "../store";
+import { API_BASE_URL } from "../config/api";
 import {
   Button,
   Text,
@@ -129,7 +130,7 @@ const ChallengeModal: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/session/${sessionId}/challenge/check`,
+        `${API_BASE_URL}/api/session/${sessionId}/challenge/check`,
         {
           method: "POST",
           headers: {

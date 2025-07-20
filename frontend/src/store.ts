@@ -1,6 +1,6 @@
-// fronte// --- Learning Stage Definitions (Optimized) ---
-// 1. Define a constant array as "single source of truth"/src/store.ts
+// frontend/src/store.ts
 import { create } from "zustand";
+import { API_BASE_URL } from "./config/api";
 
 // --- Type Definitions ---
 export interface Message {
@@ -172,7 +172,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       }));
 
       const response = await fetch(
-        `http://localhost:8000/api/session/${state.sessionId}/feedback`,
+        `${API_BASE_URL}/api/session/${state.sessionId}/feedback`,
         {
           method: "POST",
           headers: {
@@ -226,7 +226,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ isStreaming: true, error: null });
 
       const response = await fetch(
-        `http://localhost:8000/api/session/${state.sessionId}/complete`,
+        `${API_BASE_URL}/api/session/${state.sessionId}/complete`,
         {
           method: "POST",
           headers: {
@@ -276,7 +276,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/session/${sessionId}/stage/next`,
+        `${API_BASE_URL}/api/session/${sessionId}/stage/next`,
         {
           method: "POST",
           headers: {
