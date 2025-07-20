@@ -1,23 +1,26 @@
-# backend/main.py
-import uvicorn
+# api/index.py
 import uuid  # For generating unique session IDs
 import os
 import asyncio
 from dotenv import load_dotenv
 from typing import Dict
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from basic import InteractiveLearningAssistant # Import core class from basic.py
 
 load_dotenv() # Load environment variables from .env file
+# Load environment variables
+load_dotenv()
+
 app = FastAPI()
 
-# 1. Configure CORS
+# Vercel 会处理 CORS，但为了本地开发方便，我们保留它
+# 在生产环境中，Vercel 的 vercel.json 会覆盖这里的设置
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["*"], # 允许所有源
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -53,49 +56,20 @@ class Session:
 SESSIONS: Dict[str, Session] = {}
 
 # 4. HTTP endpoint: Start new session
-@app.post("/api/start_session")
-async def start_session(request: SessionStartRequest):
-    try:
-        # Read API Key from environment variable
-        api_key = os.getenv("OPENROUTER_API_KEY")
-        if not api_key:
-            raise ValueError("OPENROUTER_API_KEY environment variable not found")
-
-        session_id = str(uuid.uuid4())
-
-        # Create Session using the read key and selected model
-        new_session = Session(api_key=api_key, model=request.model)
-        
-        # Initialize problem context
-        new_session.problem_context = {
-            "problem": request.problem,
-            "language": request.language,
-            "skill_level": request.skillLevel,
-            "conversation_history": [],
-            "current_stage": "problem_analysis"
-        }
-        
-        # Get initial guidance
-        initial_guidance = new_session.assistant.get_initial_guidance(
-            problem=request.problem,
-            language=request.language,
-            skill_level=request.skillLevel
-        )
-        
-        # Store in conversation history
-        new_session.problem_context["conversation_history"].append({"role": "assistant", "content": initial_guidance})
-        
-        # Store new session in global session dictionary
-        SESSIONS[session_id] = new_session
-        
-        print(f"Session started, ID: {session_id}")
-        # 将 session_id 和初始消息一起返回给前端
-        return {"success": True, "sessionId": session_id, "message": initial_guidance}
+# Vercel 会将所有 /api/* 的请求路由到这里
+# 我们需要从路径中解析出具体的端点
+@app.post("/api/{endpoint:path}")
+async def handle_post_requests(endpoint: str, request: Request):
+    session_id = request.path_params.get("session_id") # Helper to extract session_id
     
-    except Exception as e:
-        print(f"Failed to start session: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
+    if endpoint == "start_session":
+        body = await request.json()
+        start_request = SessionStartRequest(**body)
+        return await start_session(start_request)
+    
+    # ... (add other POST endpoints here) ...
+    
+    raise HTTPException(status_code=404, detail="Endpoint not found")
 
 # 4.5. HTTP 端点：解释一个概念
 @app.get("/api/session/{session_id}/explain/{concept}")
@@ -397,56 +371,58 @@ async def get_learning_status(session_id: str):
         print(f"Failed to get learning status, Session ID: {session_id}, Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# 5. WebSocket 端点：现在路径中包含 session_id
-@app.websocket("/ws/chat/{session_id}")
-async def websocket_endpoint(websocket: WebSocket, session_id: str):
-    await websocket.accept()
+# 5. WebSocket 端点
+# Vercel 不直接支持 FastAPI 的 WebSocket，这部分需要调整或使用其他服务
+# 为了简化，我们暂时注释掉 WebSocket 相关代码
+# @app.websocket("/ws/chat/{session_id}")
+# async def websocket_endpoint(websocket: WebSocket, session_id: str):
+#     await websocket.accept()
     
-    # 根据 session_id 从字典中查找对应的会话
-    current_session = SESSIONS.get(session_id)
+#     # 根据 session_id 从字典中查找对应的会话
+#     current_session = SESSIONS.get(session_id)
     
-    if not current_session:
-        await websocket.send_json({"type": "error", "content": "Invalid session ID. Please restart."})
-        await websocket.close()
-        return
+#     if not current_session:
+#         await websocket.send_json({"type": "error", "content": "Invalid session ID. Please restart."})
+#         await websocket.close()
+#         return
 
-    try:
-        while True:
-            user_message = await websocket.receive_text()
+#     try:
+#         while True:
+#             user_message = await websocket.receive_text()
             
-            # 使用当前会话的上下文
-            ctx = current_session.problem_context
-            ctx["conversation_history"].append({"role": "user", "content": user_message})
+#             # 使用当前会话的上下文
+#             ctx = current_session.problem_context
+#             ctx["conversation_history"].append({"role": "user", "content": user_message})
 
-            async def streaming_callback(chunk: str):
-                if chunk:
-                    await websocket.send_json({"type": "chunk", "content": chunk})
+#             async def streaming_callback(chunk: str):
+#                 if chunk:
+#                     await websocket.send_json({"type": "chunk", "content": chunk})
 
-            current_session.assistant.set_streaming_callback(streaming_callback)
+#             current_session.assistant.set_streaming_callback(streaming_callback)
             
-            history_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in ctx["conversation_history"][:-1]])
+#             history_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in ctx["conversation_history"][:-1]])
 
-            ai_full_response = current_session.assistant.continue_conversation(
-                problem=ctx["problem"],
-                language=ctx["language"],
-                skill_level=ctx["skill_level"],
-                current_stage=ctx["current_stage"],
-                conversation_history=history_text,
-                student_response=user_message
-            )
+#             ai_full_response = current_session.assistant.continue_conversation(
+#                 problem=ctx["problem"],
+#                 language=ctx["language"],
+#                 skill_level=ctx["skill_level"],
+#                 current_stage=ctx["current_stage"],
+#                 conversation_history=history_text,
+#                 student_response=user_message
+#             )
             
-            ctx["conversation_history"].append({"role": "assistant", "content": ai_full_response})
+#             ctx["conversation_history"].append({"role": "assistant", "content": ai_full_response})
 
-            # 添加小的延迟确保所有流式内容都已发送
-            await asyncio.sleep(0.1)
-            await websocket.send_json({"type": "end"})
+#             # 添加小的延迟确保所有流式内容都已发送
+#             await asyncio.sleep(0.1)
+#             await websocket.send_json({"type": "end"})
 
-    except WebSocketDisconnect:
-        print(f"Client disconnected, Session ID: {session_id}")
-        # 可以在这里添加清理逻辑，比如一段时间后从 SESSIONS 字典中移除这个会话
-    except Exception as e:
-        print(f"WebSocket error, Session ID: {session_id}, Error: {e}")
-        await websocket.send_json({"type": "error", "content": str(e)})
+#     except WebSocketDisconnect:
+#         print(f"Client disconnected, Session ID: {session_id}")
+#         # 可以在这里添加清理逻辑，比如一段时间后从 SESSIONS 字典中移除这个会话
+#     except Exception as e:
+#         print(f"WebSocket error, Session ID: {session_id}, Error: {e}")
+#         await websocket.send_json({"type": "error", "content": str(e)})
 
 # 4.10. HTTP 端点：检查挑战答案
 @app.post("/api/session/{session_id}/challenge/check")
@@ -510,4 +486,6 @@ async def check_challenge_answer(session_id: str, request: ChallengeCheckRequest
 
 # 启动服务器的代码
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import uvicorn
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
