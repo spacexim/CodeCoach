@@ -1,9 +1,10 @@
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+from langchain.chains import LLMChain  # 暂时保留以避免大规模重构
 from langchain.memory import ConversationBufferMemory
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from langchain_community.chat_models import ChatOpenAI
 from typing import Dict, List, Optional, Any, Mapping, Callable
+import warnings
 import requests
 import os
 from langchain_community.llms import OpenAI
@@ -11,6 +12,9 @@ import json
 import time
 import asyncio
 import inspect
+
+# 临时抑制LangChain弃用警告，等待完整迁移
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="langchain")
 
 # 使用LangChain的自定义LLM类
 from langchain.llms.base import LLM
@@ -32,6 +36,7 @@ class OpenRouterLLM(LLM):
             prompt: str,
             stop: Optional[List[str]] = None,
             run_manager: Optional[CallbackManagerForLLMRun] = None,
+            **kwargs: Any,
     ) -> str:
         headers = {
             "Content-Type": "application/json",
@@ -55,63 +60,81 @@ class OpenRouterLLM(LLM):
         if is_streaming:
             # --- 流式输出模式 ---
             full_response = ""
-            with requests.post(
+            try:
+                with requests.post(
+                        "https://openrouter.ai/api/v1/chat/completions",
+                        headers=headers,
+                        json=data,
+                        stream=True,
+                        timeout=30,  # 添加超时
+                        verify=True  # 确保SSL验证
+                ) as response:
+                    if response.status_code != 200:
+                        raise ValueError(f"Error: {response.status_code}, {response.text}")
+
+                    for line in response.iter_lines():
+                        if line:
+                            line_text = line.decode('utf-8')
+                            if line_text.startswith("data: "):
+                                line_text = line_text[6:]
+                            if line_text.strip() == "[DONE]":
+                                continue
+                            try:
+                                chunk = json.loads(line_text)
+                                if "choices" in chunk and len(chunk["choices"]) > 0:
+                                    if "delta" in chunk["choices"][0] and "content" in chunk["choices"][0]["delta"]:
+                                        content = chunk["choices"][0]["delta"]["content"]
+                                        full_response += content
+                                        if self.streaming_callback:
+                                            # 检查回调是否是异步函数
+                                            if inspect.iscoroutinefunction(self.streaming_callback):
+                                                # 如果是异步函数，需要在事件循环中运行
+                                                try:
+                                                    loop = asyncio.get_event_loop()
+                                                    if loop.is_running():
+                                                        # 如果事件循环正在运行，等待任务完成
+                                                        task = asyncio.create_task(self.streaming_callback(content))
+                                                        # 这里我们需要等待任务完成，但不能在这里直接await
+                                                        # 所以我们暂时保持原来的行为，但添加异常处理
+                                                        pass
+                                                    else:
+                                                        # 如果没有运行的事件循环，直接运行
+                                                        asyncio.run(self.streaming_callback(content))
+                                                except Exception as e:
+                                                    print(f"Error in async streaming callback: {e}")
+                                            else:
+                                                # 如果是普通函数，直接调用
+                                                self.streaming_callback(content)
+                            except json.JSONDecodeError:
+                                pass
+            except (requests.exceptions.SSLError, requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+                print(f"Connection error: {e}")
+                raise ValueError(f"Failed to connect to OpenRouter API: {str(e)}")
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                raise ValueError(f"Unexpected error: {str(e)}")
+                
+            return full_response
+        else:
+            # --- 非流式输出模式 ---
+            try:
+                response = requests.post(
                     "https://openrouter.ai/api/v1/chat/completions",
                     headers=headers,
                     json=data,
-                    stream=True
-            ) as response:
-                if response.status_code != 200:
-                    raise ValueError(f"Error: {response.status_code}, {response.text}")
+                    timeout=30,  # 添加超时
+                    verify=True  # 确保SSL验证
+                )
+                
+                response.raise_for_status()  # 如果状态码不是2xx，则引发HTTPError
 
-                for line in response.iter_lines():
-                    if line:
-                        line_text = line.decode('utf-8')
-                        if line_text.startswith("data: "):
-                            line_text = line_text[6:]
-                        if line_text.strip() == "[DONE]":
-                            continue
-                        try:
-                            chunk = json.loads(line_text)
-                            if "choices" in chunk and len(chunk["choices"]) > 0:
-                                if "delta" in chunk["choices"][0] and "content" in chunk["choices"][0]["delta"]:
-                                    content = chunk["choices"][0]["delta"]["content"]
-                                    full_response += content
-                                    if self.streaming_callback:
-                                        # 检查回调是否是异步函数
-                                        if inspect.iscoroutinefunction(self.streaming_callback):
-                                            # 如果是异步函数，需要在事件循环中运行
-                                            try:
-                                                loop = asyncio.get_event_loop()
-                                                if loop.is_running():
-                                                    # 如果事件循环正在运行，等待任务完成
-                                                    task = asyncio.create_task(self.streaming_callback(content))
-                                                    # 这里我们需要等待任务完成，但不能在这里直接await
-                                                    # 所以我们暂时保持原来的行为，但添加异常处理
-                                                    pass
-                                                else:
-                                                    # 如果没有运行的事件循环，直接运行
-                                                    asyncio.run(self.streaming_callback(content))
-                                            except Exception as e:
-                                                print(f"Error in async streaming callback: {e}")
-                                        else:
-                                            # 如果是普通函数，直接调用
-                                            self.streaming_callback(content)
-                        except json.JSONDecodeError:
-                            pass
-            return full_response
-        else:
-            # --- 非流式输出模式 (这是您需要添加的部分) ---
-            response = requests.post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers=headers,
-                json=data
-            )
-            
-            if response.status_code == 200:
                 return response.json()["choices"][0]["message"]["content"]
-            else:
-                raise ValueError(f"Error: {response.status_code}, {response.text}")
+            except (requests.exceptions.SSLError, requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+                print(f"Connection error in non-streaming mode: {e}")
+                raise ValueError(f"Failed to connect to OpenRouter API: {str(e)}")
+            except requests.exceptions.RequestException as e:
+                print(f"Request failed in non-streaming mode: {e}")
+                raise ValueError(f"Request to OpenRouter API failed: {str(e)}")
 
     @property
     def _identifying_params(self) -> Mapping[str, Any]:
@@ -177,28 +200,32 @@ class InteractiveLearningAssistant:
     def _initialize_chains(self):
         """Initialize all the LangChain chains needed for the assistant."""
 
-        # 初始引导链 - 用于分析问题并设置初始引导问题
+        # 初始引导链 - 用于分析问题并提供有价值的初始指导
         initial_guidance_template = """
         You are an Interactive Programming Learning Assistant with expertise in algorithmic problem-solving.
-        Your goal is to guide students through learning programming concepts via Socratic questioning.
+        Your goal is to provide insightful analysis and helpful guidance to students.
 
-        # Initial Problem Guidance
-
-        Given the following programming problem, create an initial guidance message with thought-provoking questions:
+        # Initial Problem Analysis
 
         Problem: {problem}
         Language: {language}
-        User Skill Level: {skill_level}
+        User Context: {skill_level}
 
         ## CRITICAL INSTRUCTIONS:
-        - DO NOT solve the problem for the student.
-        - Create 3-5 thought-provoking questions that will help the student analyze the problem.
-        - Focus questions on understanding requirements, identifying input/output patterns, and considering edge cases.
-        - Adapt question complexity based on skill level (simpler for beginners, more advanced for advanced).
-        - Your response should be conversational, engaging, and brief (max 200 words).
-        - End with one clear question that prompts the student to share their initial thoughts.
+        - START by analyzing the problem: identify the core challenge, key requirements, and potential approaches
+        - Provide 2-3 specific insights about the problem (patterns, data structures, algorithms that might be relevant)
+        - Give concrete guidance on how to approach this type of problem
+        - End with ONE focused question that helps them take the next step
+        - Keep your response helpful and concise (max 150 words)
+        - Be encouraging and constructive
+        - Focus on being genuinely helpful rather than just asking questions
 
-        Format your response as a friendly tutor would, asking genuinely curious questions to spark critical thinking.
+        ## Response Structure:
+        1. **Problem Analysis:** (What type of problem this is, key challenges)
+        2. **Approach Suggestions:** (Specific techniques or strategies)
+        3. **Next Step:** (One clear question to guide them forward)
+
+        Provide valuable analysis first, then guide them with one thoughtful question.
         """
 
         initial_guidance_prompt = PromptTemplate(
@@ -206,11 +233,8 @@ class InteractiveLearningAssistant:
             template=initial_guidance_template
         )
 
-        self.initial_guidance_chain = LLMChain(
-            llm=self.llm,
-            prompt=initial_guidance_prompt,
-            output_key="initial_guidance"
-        )
+        # Use new RunnableSequence syntax instead of deprecated LLMChain
+        self.initial_guidance_chain = initial_guidance_prompt | self.llm
 
         # 对话继续链 - 用于持续对话
         conversation_continuation_template = """
@@ -247,11 +271,7 @@ class InteractiveLearningAssistant:
             template=conversation_continuation_template
         )
 
-        self.conversation_continuation_chain = LLMChain(
-            llm=self.llm,
-            prompt=conversation_continuation_prompt,
-            output_key="ai_response"
-        )
+        self.conversation_continuation_chain = conversation_continuation_prompt | self.llm
 
         # 阶段转换链 - 用于在学习阶段之间平滑过渡
         stage_transition_template = """
@@ -284,37 +304,31 @@ class InteractiveLearningAssistant:
             template=stage_transition_template
         )
 
-        self.stage_transition_chain = LLMChain(
-            llm=self.llm,
-            prompt=stage_transition_prompt,
-            output_key="transition_message"
-        )
+        self.stage_transition_chain = stage_transition_prompt | self.llm
 
-        # 代码反馈链 - 用于对学生代码提供指导反馈
+        # 代码反馈链 - 回归苏格拉底式引导
         code_feedback_template = """
-        You are an Interactive Programming Learning Assistant with expertise in algorithmic problem-solving.
+        You are an expert programming tutor who uses the Socratic method to guide students.
+        Your goal is to help students find and fix their own bugs, not to give them the answers.
 
-        # Code Feedback
+        # Socratic Code Feedback
 
         Problem: {problem}
         Language: {language}
         User Skill Level: {skill_level}
-        Current Stage: {current_stage}
         Student's Code: {student_code}
 
         ## CRITICAL INSTRUCTIONS:
-        - DO NOT rewrite their code or provide a complete solution.
-        - Identify 1-3 specific aspects of their code to discuss (not more).
-        - For each aspect, ask a probing question that helps them discover improvements themselves.
-        - If there are errors, point to the general area but frame as a question, not a correction.
-        - If their approach is good, acknowledge it but still ask a question about potential improvements.
-        - For beginners: focus on basic logic and syntax.
-        - For intermediate: focus on efficiency and organization.
-        - For advanced: focus on optimization, edge cases, and design patterns.
-        - Keep your response brief (max 150 words).
-        - End with an encouraging note and a specific next step suggestion.
+        - **NEVER provide the correct code or a direct solution.**
+        - **DO NOT point out the exact line number of the error.** Your goal is to help them think, not just spot mistakes.
+        - Start by acknowledging their effort and finding something positive to say about their code.
+        - If there is a logic error, gently point towards the area of the issue and ask a guiding question. For example: "That's a good start. I see you're using nested loops to check pairs. Have you considered what happens with the range of your loops? Does it cover all necessary elements?"
+        - If the code is functionally correct but inefficient (e.g., a brute-force solution for a problem that has an optimal O(n) solution), first praise them for finding a working solution. Then, ask a question to prompt them to think about optimization. For example: "Excellent, this solution works! Now, can you think of a way to solve this without using nested loops? Perhaps a data structure could help you remember numbers you've already seen?"
+        - If the code is correct and optimal, confirm it and praise their work. You can then suggest exploring edge cases or alternative implementations.
+        - Your response should be a short, encouraging paragraph followed by ONE guiding question.
+        - Keep your response under 100 words.
 
-        Provide feedback as a thoughtful mentor would, guiding through questions rather than direct answers.
+        Guide the student to their own "aha!" moment. Be a coach, not a code-corrector.
         """
 
         code_feedback_prompt = PromptTemplate(
@@ -322,11 +336,7 @@ class InteractiveLearningAssistant:
             template=code_feedback_template
         )
 
-        self.code_feedback_chain = LLMChain(
-            llm=self.llm,
-            prompt=code_feedback_prompt,
-            output_key="code_feedback"
-        )
+        self.code_feedback_chain = code_feedback_prompt | self.llm
 
         # 概念解释链 - 用于解释学生请求的特定编程概念
         concept_explanation_template = """
@@ -356,11 +366,7 @@ class InteractiveLearningAssistant:
             template=concept_explanation_template
         )
 
-        self.concept_explanation_chain = LLMChain(
-            llm=self.llm,
-            prompt=concept_explanation_prompt,
-            output_key="concept_explanation"
-        )
+        self.concept_explanation_chain = concept_explanation_prompt | self.llm
 
         # 提示生成链 - 用于提供小提示而不是完整解决方案
         hint_generation_template = """
@@ -472,22 +478,22 @@ class InteractiveLearningAssistant:
 
     def get_initial_guidance(self, problem: str, language: str, skill_level: str) -> str:
         """
-        Generate initial guidance and questions for the problem.
+        Generate initial problem analysis and guidance for the student.
 
         Args:
             problem: The programming problem description
             language: The programming language
-            skill_level: User's skill level (beginner/intermediate/advanced)
+            skill_level: User's learning context or skill level
 
         Returns:
-            Initial guidance with thought-provoking questions
+            Initial analysis with helpful insights and one focused question
         """
-        result = self.initial_guidance_chain({
+        result = self.initial_guidance_chain.invoke({
             "problem": problem,
             "language": language,
             "skill_level": skill_level
         })
-        return result["initial_guidance"]
+        return result
 
     def continue_conversation(self, problem: str, language: str, skill_level: str,
                               current_stage: str, conversation_history: str,
@@ -506,7 +512,7 @@ class InteractiveLearningAssistant:
         Returns:
             AI response to continue the conversation
         """
-        result = self.conversation_continuation_chain({
+        result = self.conversation_continuation_chain.invoke({
             "problem": problem,
             "language": language,
             "skill_level": skill_level,
@@ -514,7 +520,7 @@ class InteractiveLearningAssistant:
             "conversation_history": conversation_history,
             "student_response": student_response
         })
-        return result["ai_response"]
+        return result
 
     def generate_stage_transition(self, problem: str, language: str, skill_level: str,
                                   previous_stage: str, new_stage: str, progress_summary: str) -> str:
@@ -532,7 +538,7 @@ class InteractiveLearningAssistant:
         Returns:
             Transition message to the new stage
         """
-        result = self.stage_transition_chain({
+        result = self.stage_transition_chain.invoke({
             "problem": problem,
             "language": language,
             "skill_level": skill_level,
@@ -540,12 +546,12 @@ class InteractiveLearningAssistant:
             "new_stage": new_stage,
             "progress_summary": progress_summary
         })
-        return result["transition_message"]
+        return result
 
     def provide_code_feedback(self, problem: str, language: str, skill_level: str,
                               current_stage: str, student_code: str) -> str:
         """
-        Provide feedback on student's code using Socratic questioning.
+        Provide direct, actionable feedback on student's code.
 
         Args:
             problem: The programming problem description
@@ -555,16 +561,16 @@ class InteractiveLearningAssistant:
             student_code: The code submitted by the student
 
         Returns:
-            Socratic feedback on the code
+            Direct feedback with specific issues, solutions, and improvements
         """
-        result = self.code_feedback_chain({
+        result = self.code_feedback_chain.invoke({
             "problem": problem,
             "language": language,
             "skill_level": skill_level,
             "current_stage": current_stage,
             "student_code": student_code
         })
-        return result["code_feedback"]
+        return result
 
     def explain_concept(self, concept: str, language: str, skill_level: str, problem: str) -> str:
         """
@@ -579,13 +585,13 @@ class InteractiveLearningAssistant:
         Returns:
             Explanation of the concept
         """
-        result = self.concept_explanation_chain({
+        result = self.concept_explanation_chain.invoke({
             "concept": concept,
             "language": language,
             "skill_level": skill_level,
             "problem": problem
         })
-        return result["concept_explanation"]
+        return result
 
     def generate_hint(self, problem: str, language: str, skill_level: str,
                       current_stage: str, hint_request: str, progress_summary: str) -> str:
@@ -755,6 +761,32 @@ class InteractiveLearningAssistant:
             prompt=learning_summary_prompt,
             output_key="summary"
         )
+
+    def provide_direct_code_feedback(self, problem: str, language: str, skill_level: str,
+                                   current_stage: str, student_code: str) -> str:
+        """
+        Provide direct, actionable feedback on student's code without Socratic questioning.
+        This method gives specific issues, solutions, and improvements immediately.
+
+        Args:
+            problem: The programming problem description
+            language: The programming language
+            skill_level: User's skill level
+            current_stage: The current learning stage
+            student_code: The code submitted by the student
+
+        Returns:
+            Direct feedback with specific issues, solutions, and improvements
+        """
+        # Use the updated code_feedback_chain which now provides direct feedback
+        result = self.code_feedback_chain.invoke({
+            "problem": problem,
+            "language": language,
+            "skill_level": skill_level,
+            "current_stage": current_stage,
+            "student_code": student_code
+        })
+        return result
 
 
 

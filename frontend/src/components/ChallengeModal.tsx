@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppStore } from "../store";
 import {
   Button,
@@ -7,21 +7,120 @@ import {
   Box,
   Heading,
   HStack,
-  Textarea,
+  Code,
 } from "@chakra-ui/react";
 import { X } from "lucide-react";
-import MarkdownRenderer from "./MarkdownRenderer";
+
+interface ParsedChallenge {
+  question: string;
+  options: { label: string; value: string }[];
+  codeBlock?: string;
+  codeLanguage?: string;
+}
 
 const ChallengeModal: React.FC = () => {
   const { challenge, setChallenge, sessionId, setError } = useAppStore();
-  const [userAnswer, setUserAnswer] = useState("");
+  const [selectedAnswer, setSelectedAnswer] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
+  const [parsedChallenge, setParsedChallenge] =
+    useState<ParsedChallenge | null>(null);
+
+  // Parse the challenge text into structured format
+  useEffect(() => {
+    if (challenge?.challenge) {
+      const parsed = parseChallenge(challenge.challenge);
+      setParsedChallenge(parsed);
+    }
+  }, [challenge]);
+
+  const parseChallenge = (challengeText: string): ParsedChallenge => {
+    const lines = challengeText.split("\n").filter((line) => line.trim());
+
+    // Find the question part (everything before options)
+    const questionLines: string[] = [];
+    const optionLines: string[] = [];
+    let foundOptions = false;
+    let codeBlock = "";
+    let codeLanguage = "";
+    let inCodeBlock = false;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      // Handle code blocks
+      if (trimmed.startsWith("```")) {
+        if (!inCodeBlock) {
+          inCodeBlock = true;
+          // Extract language from opening tag
+          const langMatch = trimmed.match(/^```(\w+)?/);
+          codeLanguage = langMatch?.[1] || "text";
+        } else {
+          inCodeBlock = false;
+        }
+        continue;
+      }
+
+      if (inCodeBlock) {
+        codeBlock += line + "\n";
+        continue;
+      }
+
+      // Check if this line looks like an option (starts with A), B), C), D) etc.)
+      if (/^[A-D]\)\s/.test(trimmed)) {
+        foundOptions = true;
+        optionLines.push(trimmed);
+      } else if (!foundOptions && !trimmed.toLowerCase().includes("options:")) {
+        // Clean up formatting characters and unwanted text
+        const cleanLine = trimmed
+          .replace(/^#+\s*/, "") // Remove markdown headers
+          .replace(/^(Mini-Challenge:|Problem:|Challenge:)\s*/i, "") // Remove prefixes
+          .replace(/\*\*/g, "") // Remove bold markdown
+          .trim();
+
+        if (
+          cleanLine &&
+          !cleanLine.includes("CORRECT_ANSWER:") &&
+          !cleanLine.includes("EXPLANATION:")
+        ) {
+          questionLines.push(cleanLine);
+        }
+      }
+    }
+
+    // Extract and clean question
+    let question = questionLines.join(" ").trim();
+
+    // Further cleanup of the question
+    question = question
+      .replace(/^(Mini-Challenge:|Problem:|Challenge:)\s*/i, "")
+      .replace(/\s+/g, " ") // Normalize whitespace
+      .trim();
+
+    // Parse options
+    const options = optionLines.map((line) => {
+      const match = line.match(/^([A-D])\)\s*(.+)$/);
+      if (match) {
+        return {
+          label: match[2].trim(),
+          value: match[1],
+        };
+      }
+      return { label: line.replace(/^[A-D]\)\s*/, ""), value: line.charAt(0) };
+    });
+
+    return {
+      question,
+      options,
+      codeBlock: codeBlock.trim() || undefined,
+      codeLanguage: codeLanguage || undefined,
+    };
+  };
 
   const handleCheckAnswer = async () => {
-    if (!userAnswer.trim() || !sessionId) return;
+    if (!selectedAnswer.trim() || !sessionId) return;
 
     setIsChecking(true);
     setFeedback(null);
@@ -37,7 +136,7 @@ const ChallengeModal: React.FC = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            answer: userAnswer,
+            answer: selectedAnswer,
           }),
         }
       );
@@ -69,7 +168,7 @@ const ChallengeModal: React.FC = () => {
     setChallenge(null);
     setFeedback(null);
     setIsCorrect(null);
-    setUserAnswer("");
+    setSelectedAnswer("");
     setExplanation(null);
   };
 
@@ -77,7 +176,7 @@ const ChallengeModal: React.FC = () => {
     setFeedback(null);
     setIsCorrect(null);
     setExplanation(null);
-    setUserAnswer("");
+    setSelectedAnswer("");
   };
 
   if (!challenge) return null;
@@ -155,96 +254,133 @@ const ChallengeModal: React.FC = () => {
         {/* Content */}
         <VStack gap={6} align="stretch" p={6}>
           {/* Challenge Question */}
-          <Box
-            bg="gray.50"
-            p={5}
-            borderRadius="12px"
-            border="1px solid"
-            borderColor="gray.200"
-            color="gray.800"
-            css={{
-              "& *": {
-                color: "#2D3748 !important",
-              },
-              "& p": {
-                color: "#2D3748 !important",
-                marginBottom: "8px",
-              },
-              "& h1, & h2, & h3, & h4, & h5, & h6": {
-                color: "#1A202C !important",
-              },
-              "& code": {
-                color: "#4A5568 !important",
-                background: "#F7FAFC",
-                padding: "2px 4px",
-                borderRadius: "4px",
-              },
-              "& pre": {
-                color: "#2D3748 !important",
-                background: "#F7FAFC",
-                padding: "12px",
-                borderRadius: "8px",
-                overflow: "auto",
-              },
-            }}
-          >
-            <MarkdownRenderer content={challenge?.challenge || ""} />
+          <Box>
+            <Text
+              fontSize="lg"
+              fontWeight="600"
+              color="gray.800"
+              mb={4}
+              lineHeight="1.6"
+            >
+              {parsedChallenge?.question || challenge?.challenge || ""}
+            </Text>
+
+            {/* Code Block Display */}
+            {parsedChallenge?.codeBlock && (
+              <Box
+                bg="gray.50"
+                border="1px solid"
+                borderColor="gray.200"
+                borderRadius="8px"
+                p={4}
+                mb={4}
+                fontFamily="'JetBrains Mono', 'Fira Code', 'Consolas', monospace"
+                fontSize="sm"
+                overflow="auto"
+              >
+                <Text
+                  fontSize="xs"
+                  color="gray.600"
+                  mb={2}
+                  fontWeight="500"
+                  textTransform="uppercase"
+                >
+                  {parsedChallenge.codeLanguage || "Code"}
+                </Text>
+                <Box
+                  as="pre"
+                  color="gray.800"
+                  whiteSpace="pre-wrap"
+                  fontFamily="inherit"
+                  lineHeight="1.5"
+                >
+                  <code>{parsedChallenge.codeBlock}</code>
+                </Box>
+              </Box>
+            )}
           </Box>
 
-          {/* Answer Input */}
-          <Box>
-            <Text fontSize="sm" fontWeight="500" color="gray.700" mb={2}>
-              Your Answer:
-            </Text>
-            <Textarea
-              value={userAnswer}
-              onChange={(e) => setUserAnswer(e.target.value)}
-              placeholder="Please enter your answer..."
-              resize="vertical"
-              minH="80px"
-              bg="white"
-              color="gray.800"
-              border="2px solid"
+          {/* Multiple Choice Options */}
+          {parsedChallenge?.options && parsedChallenge.options.length > 0 ? (
+            <Box>
+              <Text fontSize="sm" fontWeight="500" color="gray.700" mb={3}>
+                Select your answer:
+              </Text>
+              <VStack align="stretch" gap={3}>
+                {parsedChallenge.options.map((option) => (
+                  <Box
+                    key={option.value}
+                    onClick={() => setSelectedAnswer(option.value)}
+                    cursor="pointer"
+                    border="2px solid"
+                    borderColor={
+                      selectedAnswer === option.value ? "#bd5d3a" : "gray.200"
+                    }
+                    borderRadius="12px"
+                    p={4}
+                    bg={selectedAnswer === option.value ? "#fdf7f3" : "white"}
+                    transition="all 0.2s"
+                    _hover={{
+                      borderColor:
+                        selectedAnswer === option.value
+                          ? "#bd5d3a"
+                          : "gray.300",
+                      bg:
+                        selectedAnswer === option.value ? "#fdf7f3" : "gray.50",
+                    }}
+                  >
+                    <HStack>
+                      <Box
+                        w="24px"
+                        h="24px"
+                        borderRadius="full"
+                        border="2px solid"
+                        borderColor={
+                          selectedAnswer === option.value
+                            ? "#bd5d3a"
+                            : "gray.300"
+                        }
+                        bg={
+                          selectedAnswer === option.value ? "#bd5d3a" : "white"
+                        }
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        transition="all 0.2s"
+                      >
+                        <Text
+                          fontSize="sm"
+                          fontWeight="600"
+                          color={
+                            selectedAnswer === option.value
+                              ? "white"
+                              : "gray.600"
+                          }
+                        >
+                          {option.value}
+                        </Text>
+                      </Box>
+                      <Text fontSize="md" color="gray.800" flex="1">
+                        {option.label}
+                      </Text>
+                    </HStack>
+                  </Box>
+                ))}
+              </VStack>
+            </Box>
+          ) : (
+            /* Fallback for non-multiple choice questions */
+            <Box
+              bg="gray.50"
+              p={5}
+              borderRadius="12px"
+              border="1px solid"
               borderColor="gray.200"
-              _focus={{
-                borderColor: "#bd5d3a",
-                boxShadow: "0 0 0 1px #bd5d3a",
-                color: "#2D3748",
-              }}
-              _placeholder={{
-                color: "gray.400",
-              }}
-              style={{
-                color: "#2D3748 !important",
-                backgroundColor: "#FFFFFF !important",
-                fontFamily: "system-ui, -apple-system, sans-serif",
-              }}
-              css={{
-                color: "#2D3748 !important",
-                backgroundColor: "#FFFFFF !important",
-                "&::placeholder": {
-                  color: "#A0AEC0 !important",
-                },
-                "&:focus": {
-                  color: "#2D3748 !important",
-                },
-                "& textarea": {
-                  color: "#2D3748 !important",
-                },
-                // 强制覆盖任何可能的透明样式
-                "& *": {
-                  color: "#2D3748 !important",
-                },
-                // 额外的强制样式
-                "&.chakra-textarea": {
-                  color: "#2D3748 !important",
-                },
-                textarea: {
-                  color: "#2D3748 !important",
-                },
-              }}
-            />
-          </Box>
+              color="gray.800"
+            >
+              <Text>{challenge?.challenge || ""}</Text>
+            </Box>
+          )}
 
           {/* Feedback */}
           {feedback && (
@@ -321,7 +457,7 @@ const ChallengeModal: React.FC = () => {
                 color="white"
                 _hover={{ bg: "#a04d2f" }}
                 onClick={handleCheckAnswer}
-                disabled={!userAnswer.trim() || isChecking}
+                disabled={!selectedAnswer.trim() || isChecking}
                 loading={isChecking}
                 loadingText="Checking..."
                 size="md"

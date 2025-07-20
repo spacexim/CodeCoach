@@ -94,7 +94,6 @@ const Sidebar: React.FC = () => {
     sessionId,
     currentStage,
     addMessage,
-    setCurrentStage,
     setError,
     setChallenge,
     resetSession,
@@ -103,13 +102,14 @@ const Sidebar: React.FC = () => {
     toggleRightPanel,
     completeLearning,
     learningCompleted,
+    transitionToNextStage,
+    isLoading,
   } = useAppStore();
 
   const [showConceptInput, setShowConceptInput] = useState(false);
   const [conceptInput, setConceptInput] = useState("");
   const [showHintInput, setShowHintInput] = useState(false);
   const [hintInput, setHintInput] = useState("");
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // A state to control the visibility of text content to sync with sidebar animation
   const [showText, setShowText] = useState(!sidebarCollapsed);
@@ -191,85 +191,24 @@ const Sidebar: React.FC = () => {
   };
 
   const handleRequestHint = async () => {
-    if (!hintInput.trim() || !sessionId) return;
-    addMessage({
-      sender: "user",
-      text: `I'm stuck and need a hint: ${hintInput}`,
-    });
-    const hintToFetch = hintInput;
+    if (!hintInput.trim()) return;
+    handleApiCall(
+      `http://localhost:8000/api/session/${sessionId}/hint/${hintInput}`,
+      {},
+      `Please provide a hint for the problem: "${hintInput}".`,
+      (data) =>
+        addMessage({
+          sender: "ai",
+          text: (data as { hint: string }).hint,
+        })
+    );
     setHintInput("");
     setShowHintInput(false);
-    try {
-      const response = await fetch(
-        `http://localhost:8000/api/session/${sessionId}/hint`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ hintRequest: hintToFetch }),
-        }
-      );
-      if (!response.ok) throw new Error((await response.json()).detail);
-      const data = await response.json();
-      if (data.success) addMessage({ sender: "ai", text: data.hint });
-      else setError(data.error);
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred";
-      setError(errorMessage);
-    }
-  };
-
-  const handleStageTransition = async () => {
-    if (!sessionId || isTransitioning) return;
-    setIsTransitioning(true);
-    try {
-      const response = await fetch(
-        `http://localhost:8000/api/session/${sessionId}/stage/next`,
-        { method: "POST" }
-      );
-      if (!response.ok) {
-        if (response.status === 404) {
-          const shouldReset = window.confirm(
-            "Session expired. Start new learning session?"
-          );
-          if (shouldReset) {
-            resetSession();
-            return;
-          }
-          throw new Error(
-            "Session expired. Please start a new learning session"
-          );
-        }
-        throw new Error("Failed to switch stage");
-      }
-      const data = await response.json();
-      if (data.success) {
-        addMessage({ sender: "ai", text: data.transitionMessage });
-        setCurrentStage(data.newStage);
-      } else {
-        alert(data.message);
-      }
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred";
-      setError(errorMessage);
-    } finally {
-      setIsTransitioning(false);
-    }
   };
 
   const handleCompleteLearning = async () => {
-    if (!sessionId || isTransitioning) return;
-    setIsTransitioning(true);
-    try {
-      await completeLearning();
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Error during learning completion";
-      setError(errorMessage);
-    } finally {
-      setIsTransitioning(false);
-    }
+    if (!sessionId || isLoading) return;
+    await completeLearning();
   };
 
   const handleRequestChallenge = async () => {
@@ -611,10 +550,10 @@ const Sidebar: React.FC = () => {
                     bg="#bd5d3a"
                     color="white"
                     _hover={{ bg: "#a04d2f" }}
-                    onClick={handleStageTransition}
-                    loading={isTransitioning}
+                    onClick={transitionToNextStage}
+                    loading={isLoading}
                     loadingText="Switching..."
-                    disabled={isTransitioning}
+                    disabled={isLoading}
                   >
                     Enter Next Stage →
                   </Button>
@@ -632,7 +571,7 @@ const Sidebar: React.FC = () => {
                       onClick={() => {
                         resetSession();
                       }}
-                      disabled={isTransitioning}
+                      disabled={isLoading}
                     >
                       🚀 Start New Problem
                     </Button>
@@ -645,9 +584,9 @@ const Sidebar: React.FC = () => {
                       color="white"
                       _hover={{ bg: "#218838" }}
                       onClick={handleCompleteLearning}
-                      loading={isTransitioning}
+                      loading={isLoading}
                       loadingText="Completing..."
-                      disabled={isTransitioning}
+                      disabled={isLoading}
                     >
                       ✨ Complete Learning
                     </Button>

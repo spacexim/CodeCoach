@@ -36,6 +36,9 @@ class HintRequest(BaseModel):
 class CodeFeedbackRequest(BaseModel):
     code: str
 
+class ChallengeCheckRequest(BaseModel):
+    answer: str
+
 # 3. Session state management (upgraded version)
 class Session:
     """Independent session object for each user"""
@@ -185,7 +188,7 @@ async def get_code_feedback(session_id: str, request: CodeFeedbackRequest):
         # 更新当前阶段状态（如果需要）
         ctx["current_stage"] = "implementation"
 
-        feedback = current_session.assistant.provide_code_feedback(
+        feedback = current_session.assistant.provide_direct_code_feedback(
             problem=ctx["problem"],
             language=ctx["language"],
             skill_level=ctx["skill_level"],
@@ -253,6 +256,7 @@ async def transition_to_next_stage(session_id: str):
         new_stage_index = learning_stages.index(new_stage)
         is_last_stage = new_stage_index >= len(learning_stages) - 1
         
+        # 直接返回过渡消息，不再进行不必要的 continue_conversation 调用
         return {
             "success": True, 
             "transitionMessage": transition_message, 
@@ -298,6 +302,9 @@ async def create_mini_challenge(session_id: str):
             current_stage=ctx["current_stage"],
             focus_area=focus_area
         )
+        
+        # 存储挑战数据到session中，以便后续检查答案
+        ctx["current_challenge"] = challenge_data
         
         return {"success": True, "challengeData": challenge_data}
 
@@ -440,6 +447,66 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
     except Exception as e:
         print(f"WebSocket error, Session ID: {session_id}, Error: {e}")
         await websocket.send_json({"type": "error", "content": str(e)})
+
+# 4.10. HTTP 端点：检查挑战答案
+@app.post("/api/session/{session_id}/challenge/check")
+async def check_challenge_answer(session_id: str, request: ChallengeCheckRequest):
+    """
+    检查学生提交的挑战答案是否正确
+    """
+    current_session = SESSIONS.get(session_id)
+    if not current_session:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    try:
+        ctx = current_session.problem_context
+        
+        # 假设我们在session中存储了当前挑战的正确答案
+        # 这需要在创建挑战时存储
+        stored_challenge = ctx.get("current_challenge")
+        if not stored_challenge:
+            raise HTTPException(status_code=400, detail="No active challenge found.")
+        
+        correct_answer = stored_challenge.get("correct_answer", "").strip().lower()
+        user_answer = request.answer.strip().lower()
+        
+        # 检查答案是否正确
+        # 用户可能提交单字母（如 "c"）或完整答案文本
+        is_correct = False
+        
+        # 如果用户答案是单字母，检查是否匹配正确答案的首字母
+        if len(user_answer) == 1 and user_answer.isalpha():
+            # 检查正确答案是否以该字母开头（如 "c)" 或直接是 "c"）
+            is_correct = (correct_answer.startswith(user_answer) or 
+                         correct_answer.startswith(user_answer + ")") or
+                         correct_answer == user_answer)
+        else:
+            # 完整答案比较
+            is_correct = user_answer == correct_answer
+        
+        # 获取解释
+        explanation = stored_challenge.get("explanation", "")
+        
+        # 提供反馈
+        if is_correct:
+            feedback = "Excellent! That's the correct answer."
+        else:
+            # 提取正确答案的字母部分用于显示
+            correct_letter = correct_answer[0].upper() if correct_answer else "Unknown"
+            if correct_answer.startswith(correct_letter.lower() + ")"):
+                correct_letter = correct_answer[0].upper()
+            feedback = f"Not quite right. The correct answer is: {correct_letter}"
+        
+        return {
+            "success": True,
+            "isCorrect": is_correct,
+            "feedback": feedback,
+            "explanation": explanation
+        }
+        
+    except Exception as e:
+        print(f"Failed to check challenge answer, Session ID: {session_id}, Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # 启动服务器的代码
 if __name__ == "__main__":

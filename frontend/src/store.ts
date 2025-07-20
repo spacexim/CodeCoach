@@ -43,6 +43,7 @@ interface AppState {
   learningCompleted: boolean; // New: mark whether learning is completed
   sidebarCollapsed: boolean; // New: sidebar collapse state
   rightPanelCollapsed: boolean; // New: right panel collapse state
+  isLoading: boolean; // General loading state for actions
 
   // State-modifying functions (Actions)
   setSession: (sessionData: {
@@ -69,11 +70,12 @@ interface AppState {
   toggleRightPanel: () => void; // New: toggle right panel state
   getCodeFeedback: (code: string) => Promise<void>; // New: get code feedback
   completeLearning: () => Promise<void>; // New: complete learning
+  transitionToNextStage: () => Promise<void>; // For handling stage transitions
   resetSession: () => void;
 }
 
 // --- Create Store (Revised) ---
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   // Initial state
   sessionId: null,
   currentStage: "problem_analysis",
@@ -88,6 +90,7 @@ export const useAppStore = create<AppState>((set) => ({
   learningCompleted: false, // New: initially incomplete
   sidebarCollapsed: false, // New: sidebar initially expanded
   rightPanelCollapsed: false, // Modified: right panel initially expanded
+  isLoading: false, // Initialize isLoading
 
   // Actions implementation
   setSession: ({ sessionId, initialMessage, problem, language, skillLevel }) =>
@@ -259,6 +262,59 @@ export const useAppStore = create<AppState>((set) => ({
           error instanceof Error ? error.message : "Error completing learning",
         isStreaming: false,
       });
+    }
+  },
+
+  transitionToNextStage: async () => {
+    const { sessionId } = get();
+    if (!sessionId) {
+      set({ error: "Session not found, please restart" });
+      return;
+    }
+
+    set({ isLoading: true, error: null }); // Set loading state
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/session/${sessionId}/stage/next`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        const transitionMessage: Message = {
+          sender: "ai",
+          text: data.transitionMessage,
+        };
+        set((state) => ({
+          messages: [...state.messages, transitionMessage],
+          currentStage: data.newStage,
+        }));
+      } else {
+        throw new Error(
+          data.message || "Failed to transition to the next stage"
+        );
+      }
+    } catch (error) {
+      console.error("Error transitioning to the next stage:", error);
+      set({
+        error:
+          error instanceof Error
+            ? error.message
+            : "Error transitioning to the next stage",
+      });
+    } finally {
+      set({ isLoading: false }); // Reset loading state
     }
   },
 
