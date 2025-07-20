@@ -17,7 +17,12 @@ app = FastAPI()
 # 1. Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://*.app.github.dev",
+        "https://*.github.dev",
+        "*"  # 临时允许所有源，方便 Codespace 调试
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
