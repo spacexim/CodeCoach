@@ -193,16 +193,42 @@ const Sidebar: React.FC = () => {
 
   const handleRequestHint = async () => {
     if (!hintInput.trim()) return;
-    handleApiCall(
-      `${API_BASE_URL}/api/session/${sessionId}/hint/${hintInput}`,
-      {},
-      `Please provide a hint for the problem: "${hintInput}".`,
-      (data) =>
-        addMessage({
-          sender: "ai",
-          text: (data as { hint: string }).hint,
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/session/${sessionId}/hint`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          hintRequest: hintInput
         })
-    );
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      addMessage({
+        sender: "ai",
+        text: data.hint,
+      });
+      
+      // 添加用户请求消息
+      addMessage({
+        sender: "user",
+        text: `Please provide a hint: "${hintInput}"`,
+      });
+      
+    } catch (error) {
+      console.error('Error requesting hint:', error);
+      addMessage({
+        sender: "ai",
+        text: "Sorry, I encountered an error while generating the hint. Please try again.",
+      });
+    }
+    
     setHintInput("");
     setShowHintInput(false);
   };
