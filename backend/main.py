@@ -21,7 +21,8 @@ app.add_middleware(
         "http://localhost:5173",
         "https://*.app.github.dev",
         "https://*.github.dev",
-        "*"  # 临时允许所有源，方便 Codespace 调试
+        "https://*.vercel.app",  # 添加 Vercel 域名支持
+        "*"  # 临时允许所有源，方便调试
     ],
     allow_credentials=True,
     allow_methods=["*"],

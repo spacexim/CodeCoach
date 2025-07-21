@@ -63,7 +63,10 @@ function App() {
   const connectWebSocket = (newSessionId: string) => {
     if (ws.current) ws.current.close();
     // 将 HTTP URL 转换为 WebSocket URL
-    const wsUrl = API_BASE_URL.replace('https://', 'wss://').replace('http://', 'ws://');
+    const wsUrl = API_BASE_URL.replace("https://", "wss://").replace(
+      "http://",
+      "ws://"
+    );
     ws.current = new WebSocket(`${wsUrl}/ws/chat/${newSessionId}`);
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -100,11 +103,11 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/api/start_session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          problem, 
-          language, 
-          skillLevel, 
-          model: "anthropic/claude-3.7-sonnet" 
+        body: JSON.stringify({
+          problem,
+          language,
+          skillLevel,
+          model: "anthropic/claude-3.7-sonnet",
         }),
       });
       if (!response.ok)
