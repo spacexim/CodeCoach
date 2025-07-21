@@ -477,13 +477,6 @@ function App() {
                         transition="all 0.2s"
                         onClick={() => {
                           if (inputValue.trim()) {
-                            const modelMapping = {
-                              "Claude 3.7 Sonnet":
-                                "anthropic/claude-3.7-sonnet",
-                              "GPT-4o": "openai/gpt-4o",
-                              "DeepSeek R1": "deepseek/deepseek-r1:free",
-                            };
-
                             handleStartSession(
                               inputValue,
                               language,

@@ -8,7 +8,6 @@ import {
   Box,
   Heading,
   HStack,
-  Code,
 } from "@chakra-ui/react";
 import { X } from "lucide-react";
 
