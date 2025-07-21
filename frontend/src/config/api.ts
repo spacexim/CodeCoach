@@ -7,7 +7,7 @@ const getApiBaseUrl = () => {
   
   // 生产环境
   if (!import.meta.env.DEV) {
-    return "https://codecoach-production.up.railway.app";
+    return "https://spacexim.pythonanywhere.com";
   }
   
   // 开发环境 - 检查是否在 Codespace 中
