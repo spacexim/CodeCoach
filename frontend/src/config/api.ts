@@ -1,6 +1,6 @@
 const getApiBaseUrl = () => {
   // 暂时直接使用后端 URL，绕过代理问题
-  return "https://spacexim.pythonanywhere.com";
+  return "https://codecoach-jlo6.onrender.com";
 
   // 原来的逻辑先注释掉
   /*
