@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAppStore } from "../store";
 import { API_BASE_URL } from "../config/api";
-import {
-  Button,
-  Text,
-  VStack,
-  Box,
-  Heading,
-  HStack,
-} from "@chakra-ui/react";
+import { Button, Text, VStack, Box, Heading, HStack } from "@chakra-ui/react";
 import { X } from "lucide-react";
 
 interface ParsedChallenge {

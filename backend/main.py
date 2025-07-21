@@ -5,7 +5,7 @@ import os
 import asyncio
 from dotenv import load_dotenv
 from typing import Dict
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -24,8 +24,8 @@ app.add_middleware(
         "https://*.vercel.app",  # 添加 Vercel 域名支持
         "*"  # 临时允许所有源，方便调试
     ],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -513,6 +513,11 @@ async def check_challenge_answer(session_id: str, request: ChallengeCheckRequest
     except Exception as e:
         print(f"Failed to check challenge answer, Session ID: {session_id}, Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# 添加 OPTIONS 处理器
+@app.options("/{path:path}")
+async def options_handler(request: Request, path: str):
+    return {"message": "OK"}
 
 # 启动服务器的代码
 if __name__ == "__main__":
